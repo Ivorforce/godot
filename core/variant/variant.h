@@ -434,6 +434,17 @@ public:
 	operator PackedColorArray() const;
 	operator PackedVector4Array() const;
 
+	explicit operator PackedByteArray &() const;
+	explicit operator PackedInt32Array &() const;
+	explicit operator PackedInt64Array &() const;
+	explicit operator PackedFloat32Array &() const;
+	explicit operator PackedFloat64Array &() const;
+	explicit operator PackedStringArray &() const;
+	explicit operator PackedVector2Array &() const;
+	explicit operator PackedVector3Array &() const;
+	explicit operator PackedColorArray &() const;
+	explicit operator PackedVector4Array &() const;
+
 	operator Vector<::RID>() const;
 	operator Vector<Plane>() const;
 	operator Vector<Face3>() const;

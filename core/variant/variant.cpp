@@ -2349,6 +2349,86 @@ Variant::operator PackedVector4Array() const {
 	}
 }
 
+Variant::operator PackedByteArray &() const {
+	if (type == PACKED_BYTE_ARRAY) {
+		return static_cast<PackedArrayRef<uint8_t> *>(_data.packed_array)->array;
+	} else {
+		CRASH_NOW_MSG("Cannot convert to a PackedByteArray lvalue reference. Check the variant's type before conversion.");
+	}
+}
+
+Variant::operator PackedInt32Array &() const {
+	if (type == PACKED_INT32_ARRAY) {
+		return static_cast<PackedArrayRef<int32_t> *>(_data.packed_array)->array;
+	} else {
+		CRASH_NOW_MSG("Cannot convert to a PackedInt32Array lvalue reference. Check the variant's type before conversion.");
+	}
+}
+
+Variant::operator PackedInt64Array &() const {
+	if (type == PACKED_INT64_ARRAY) {
+		return static_cast<PackedArrayRef<int64_t> *>(_data.packed_array)->array;
+	} else {
+		CRASH_NOW_MSG("Cannot convert to a PackedInt64Array lvalue reference. Check the variant's type before conversion.");
+	}
+}
+
+Variant::operator PackedFloat32Array &() const {
+	if (type == PACKED_FLOAT32_ARRAY) {
+		return static_cast<PackedArrayRef<float> *>(_data.packed_array)->array;
+	} else {
+		CRASH_NOW_MSG("Cannot convert to a PackedFloat32Array lvalue reference. Check the variant's type before conversion.");
+	}
+}
+
+Variant::operator PackedFloat64Array &() const {
+	if (type == PACKED_FLOAT64_ARRAY) {
+		return static_cast<PackedArrayRef<double> *>(_data.packed_array)->array;
+	} else {
+		CRASH_NOW_MSG("Cannot convert to a PackedFloat64Array lvalue reference. Check the variant's type before conversion.");
+	}
+}
+
+Variant::operator PackedStringArray &() const {
+	if (type == PACKED_STRING_ARRAY) {
+		return static_cast<PackedArrayRef<String> *>(_data.packed_array)->array;
+	} else {
+		CRASH_NOW_MSG("Cannot convert to a PackedStringArray lvalue reference. Check the variant's type before conversion.");
+	}
+}
+
+Variant::operator PackedVector2Array &() const {
+	if (type == PACKED_VECTOR2_ARRAY) {
+		return static_cast<PackedArrayRef<Vector2> *>(_data.packed_array)->array;
+	} else {
+		CRASH_NOW_MSG("Cannot convert to a PackedVector2Array lvalue reference. Check the variant's type before conversion.");
+	}
+}
+
+Variant::operator PackedVector3Array &() const {
+	if (type == PACKED_VECTOR3_ARRAY) {
+		return static_cast<PackedArrayRef<Vector3> *>(_data.packed_array)->array;
+	} else {
+		CRASH_NOW_MSG("Cannot convert to a PackedVector3Array lvalue reference. Check the variant's type before conversion.");
+	}
+}
+
+Variant::operator PackedColorArray &() const {
+	if (type == PACKED_COLOR_ARRAY) {
+		return static_cast<PackedArrayRef<Color> *>(_data.packed_array)->array;
+	} else {
+		CRASH_NOW_MSG("Cannot convert to a PackedColorArray lvalue reference. Check the variant's type before conversion.");
+	}
+}
+
+Variant::operator PackedVector4Array &() const {
+	if (type == PACKED_VECTOR4_ARRAY) {
+		return static_cast<PackedArrayRef<Vector4> *>(_data.packed_array)->array;
+	} else {
+		CRASH_NOW_MSG("Cannot convert to a PackedVector4Array lvalue reference. Check the variant's type before conversion.");
+	}
+}
+
 /* helpers */
 
 Variant::operator Vector<::RID>() const {
