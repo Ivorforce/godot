@@ -258,39 +258,85 @@ struct VariantCasterAndValidate {
 			r_error.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT;
 			r_error.argument = p_arg_idx;
 			r_error.expected = argtype;
-		}
+				}
 
 		return VariantCaster<T>::cast(*p_args[p_arg_idx]);
 	}
 };
 
+template <typename T, typename... Args>
+class has_get_ptr
+{
+	template <typename C, typename = decltype(C::get_ptr(std::declval<Args>()...))>
+	static std::true_type test(int);
+	template <typename C>
+	static std::false_type test(...);
+
+public:
+	static constexpr bool value = decltype(test<T>(0))::value;
+};
+
+// Primary template, assumes false
+template <typename, template <typename...> class>
+struct is_specialization_of : std::false_type {};
+
+// Partial specialization for matching template
+template <template <typename...> class Template, typename... Args>
+struct is_specialization_of<Template<Args...>, Template> : std::true_type {};
+
 template <typename T>
 struct VariantCasterAndValidate<T &> {
-	static _FORCE_INLINE_ T cast(const Variant **p_args, uint32_t p_arg_idx, Callable::CallError &r_error) {
-		Variant::Type argtype = GetTypeInfo<T>::VARIANT_TYPE;
-		if (!Variant::can_convert_strict(p_args[p_arg_idx]->get_type(), argtype) ||
-				!VariantObjectClassChecker<T>::check(*p_args[p_arg_idx])) {
-			r_error.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT;
-			r_error.argument = p_arg_idx;
-			r_error.expected = argtype;
+	static _FORCE_INLINE_ auto cast(const Variant **p_args, uint32_t p_arg_idx, Callable::CallError &r_error) {
+		if constexpr (std::is_same_v<T, Variant>) {
+			// Variant self-identifies as NIL, so we need to catch its case here already.
+			return *p_args[p_arg_idx];
 		}
+		else {
+			Variant::Type argtype = GetTypeInfo<T>::VARIANT_TYPE;
+			if (p_args[p_arg_idx]->get_type() != argtype || !VariantObjectClassChecker<T>::check(*p_args[p_arg_idx])) {
+				r_error.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT;
+				r_error.argument = p_arg_idx;
+				r_error.expected = argtype;
+			}
 
-		return VariantCaster<T>::cast(*p_args[p_arg_idx]);
+			if constexpr (has_get_ptr<VariantGetInternalPtr<T>, Variant*>::value) {
+				// Normal variant type: We can return a reference.
+				return *VariantGetInternalPtr<T>::get_ptr(p_args[p_arg_idx]);
+			}
+			else {
+				// Not a normal variant type; default to making a copy.
+				// TODO Typed arrays could be passed down as references, but then we'd have to give up auto-conversions.
+				return static_cast<T>(*p_args[p_arg_idx]);
+			}
+		}
 	}
 };
 
 template <typename T>
 struct VariantCasterAndValidate<const T &> {
-	static _FORCE_INLINE_ T cast(const Variant **p_args, uint32_t p_arg_idx, Callable::CallError &r_error) {
-		Variant::Type argtype = GetTypeInfo<T>::VARIANT_TYPE;
-		if (!Variant::can_convert_strict(p_args[p_arg_idx]->get_type(), argtype) ||
-				!VariantObjectClassChecker<T>::check(*p_args[p_arg_idx])) {
-			r_error.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT;
-			r_error.argument = p_arg_idx;
-			r_error.expected = argtype;
+	static _FORCE_INLINE_ auto cast(const Variant **p_args, uint32_t p_arg_idx, Callable::CallError &r_error) {
+		if constexpr (std::is_same_v<T, Variant>) {
+			// Variant self-identifies as NIL, so we need to catch its case here already.
+			return *p_args[p_arg_idx];
 		}
+		else {
+			Variant::Type argtype = GetTypeInfo<T>::VARIANT_TYPE;
+			if (p_args[p_arg_idx]->get_type() != argtype || !VariantObjectClassChecker<T>::check(*p_args[p_arg_idx])) {
+				r_error.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT;
+				r_error.argument = p_arg_idx;
+				r_error.expected = argtype;
+			}
 
-		return VariantCaster<T>::cast(*p_args[p_arg_idx]);
+			if constexpr (has_get_ptr<VariantGetInternalPtr<T>, const Variant*>::value) {
+				// Normal variant type: We can return a reference.
+				return *VariantGetInternalPtr<T>::get_ptr(p_args[p_arg_idx]);
+			}
+			else {
+				// Not a normal variant type; default to making a copy.
+				// TODO Typed arrays could be passed down as references, but then we'd have to give up auto-conversions.
+				return static_cast<T>(*p_args[p_arg_idx]);
+			}
+		}
 	}
 };
 

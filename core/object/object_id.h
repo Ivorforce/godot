@@ -56,8 +56,8 @@ public:
 	_ALWAYS_INLINE_ void operator=(uint64_t p_uint64) { id = p_uint64; }
 
 	_ALWAYS_INLINE_ ObjectID() {}
-	_ALWAYS_INLINE_ explicit ObjectID(const uint64_t p_id) { id = p_id; }
-	_ALWAYS_INLINE_ explicit ObjectID(const int64_t p_id) { id = p_id; }
+	_ALWAYS_INLINE_ ObjectID(const uint64_t p_id) { id = p_id; }
+	_ALWAYS_INLINE_ ObjectID(const int64_t p_id) { id = p_id; }
 };
 
 #endif // OBJECT_ID_H
