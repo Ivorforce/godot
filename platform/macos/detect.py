@@ -36,6 +36,7 @@ def get_opts():
         BoolVariable("use_asan", "Use LLVM/GCC compiler address sanitizer (ASAN)", False),
         BoolVariable("use_tsan", "Use LLVM/GCC compiler thread sanitizer (TSAN)", False),
         BoolVariable("use_coverage", "Use instrumentation codes in the binary (e.g. for code coverage)", False),
+        BoolVariable("with_x86_64h", "If arch=x86_64, include an x86_64h slice.", False),
         ("angle_libs", "Path to the ANGLE static libraries", ""),
         (
             "bundle_sign_identity",
@@ -95,6 +96,11 @@ def configure(env: "SConsEnvironment"):
         env.Append(ASFLAGS=["-arch", "x86_64", "-mmacosx-version-min=10.13"])
         env.Append(CCFLAGS=["-arch", "x86_64", "-mmacosx-version-min=10.13"])
         env.Append(LINKFLAGS=["-arch", "x86_64", "-mmacosx-version-min=10.13"])
+
+        if env["with_x86_64h"]:
+            env.Append(ASFLAGS=["-arch", "x86_64h"])
+            env.Append(CCFLAGS=["-arch", "x86_64h"])
+            env.Append(LINKFLAGS=["-arch", "x86_64h"])
 
     env.Append(CCFLAGS=["-ffp-contract=off"])
 
