@@ -2264,6 +2264,8 @@ Error String::parse_utf8(const char *p_utf8, int p_len, bool p_skip_cr) {
 	} else {
 		return OK;
 	}
+
+	// Some change
 }
 
 CharString String::utf8() const {
