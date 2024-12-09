@@ -25,6 +25,7 @@ jobs:
     - uses: AurorNZ/paths-filter@298e00d16954592b06fe237dbf749947c3dd4a98
       id: filter_macos
       with:
+        base: platforms-change
         filters: |
           android:
             - '**'
