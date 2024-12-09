@@ -22,6 +22,7 @@ def can_build():
     if pkgconf_error:
         print_error("pkg-config not found. Aborting.")
         return False
+    print("Test")
 
     return True
 
