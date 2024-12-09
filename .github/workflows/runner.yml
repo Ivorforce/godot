@@ -6,6 +6,44 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    outputs:
+      android: ${{ steps.filter_macos.outputs.android }}
+      ios: ${{ steps.filter_macos.outputs.ios }}
+      linux: ${{ steps.filter_macos.outputs.linux }}
+      macos: ${{ steps.filter_macos.outputs.macos }}
+      windows: ${{ steps.filter_macos.outputs.windows }}
+      web: ${{ steps.filter_macos.outputs.web }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - uses: dorny/paths-filter@v3
+      id: filter_macos
+      with:
+        filters: |
+          android: |
+            '**'
+            '!platform/*/**'
+            'platform/android/**'
+          linux: |
+            '**'
+            '!platform/*/**'
+            'platform/linux/**'
+          macos: |
+            '**'
+            '!platform/*/**'
+            'platform/macos/**'
+          windows: |
+            '**'
+            '!platform/*/**'
+            'platform/windows/**'
+          web: |
+            '**'
+            '!platform/*/**'
+            'platform/web/**'
+
   # First stage: Only static checks, fast and prevent expensive builds from running.
 
   static-checks:
@@ -17,32 +55,38 @@ jobs:
 
   android-build:
     name: 🤖 Android
-    needs: static-checks
+    needs: [static-checks, dispatch]
+    if: needs.dispatch.outputs.android == 'true'
     uses: ./.github/workflows/android_builds.yml
 
   ios-build:
     name: 🍏 iOS
-    needs: static-checks
+    needs: [static-checks, dispatch]
+    if: needs.dispatch.outputs.ios == 'true'
     uses: ./.github/workflows/ios_builds.yml
 
   linux-build:
     name: 🐧 Linux
-    needs: static-checks
+    needs: [static-checks, dispatch]
+    if: needs.dispatch.outputs.linux == 'true'
     uses: ./.github/workflows/linux_builds.yml
 
   macos-build:
     name: 🍎 macOS
-    needs: static-checks
+    needs: [static-checks, dispatch]
+    if: needs.dispatch.outputs.macos == 'true'
     uses: ./.github/workflows/macos_builds.yml
 
   windows-build:
     name: 🏁 Windows
-    needs: static-checks
+    needs: [static-checks, dispatch]
+    if: needs.dispatch.outputs.windows == 'true'
     uses: ./.github/workflows/windows_builds.yml
 
   web-build:
     name: 🌐 Web
-    needs: static-checks
+    needs: [static-checks, dispatch]
+    if: needs.dispatch.outputs.web == 'true'
     uses: ./.github/workflows/web_builds.yml
 
   # Third stage: Run auxiliary tests using build artifacts from previous jobs.
