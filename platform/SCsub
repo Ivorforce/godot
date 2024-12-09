@@ -23,7 +23,7 @@ def export_icon_builder(target, source, env):
             f"""\
 static const char *_{platform}_{src_name}_svg = {methods.to_raw_cstring(svg)};
 """
-        )
+        ) # Test
 
 
 for platform in env.platform_exporters:
