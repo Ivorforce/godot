@@ -1,0 +1,24 @@
+android:
+  - '**'
+  - '!platform/*/**'
+  - 'platform/android/**'
+ios:
+  - '**'
+  - '!platform/*/**'
+  - 'platform/ios/**'
+linux:
+  - '**'
+  - '!platform/*/**'
+  - 'platform/linuxbsd/**'
+macos:
+  - '**'
+  - '!platform/*/**'
+  - 'platform/macos/**'
+windows:
+  - '**'
+  - '!platform/*/**'
+  - 'platform/windows/**'
+web:
+  - '**'
+  - '!platform/*/**'
+  - 'platform/web/**'
