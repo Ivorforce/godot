@@ -1,24 +1,41 @@
+shared: &shared
+  - '**'
+  - '!platform/*/**'
+  - '!doc/**'
+# GitHub Actions
+  - '!.github/workflows/**'
+  - '.github/workflows/runner.yml'
+  - '.github/workflows/static_checks.yml'
+# Static File Types
+  - '!**/*.md'
+  - '!**/*.png'
 android:
-  - '**'
-  - '!platform/*/**'
+  - *shared
   - 'platform/android/**'
+  - '.github/workflows/android_builds.yml'
+  - '!tests/**'
 ios:
-  - '**'
-  - '!platform/*/**'
+  - *shared
   - 'platform/ios/**'
+  - '.github/workflows/ios_builds.yml'
+  - '!tests/**'
 linux:
-  - '**'
-  - '!platform/*/**'
+  - *shared
   - 'platform/linuxbsd/**'
+  - '.github/workflows/linux_builds.yml'
+  - '.github/workflows/godot_cpp_test.yml'
+# Docs are checked in one workflow here.
+  - 'doc/**'
 macos:
-  - '**'
-  - '!platform/*/**'
+  - *shared
   - 'platform/macos/**'
+  - '.github/workflows/macos_builds.yml'
 windows:
-  - '**'
-  - '!platform/*/**'
+  - *shared
   - 'platform/windows/**'
+  - '.github/workflows/windows_builds.yml'
 web:
-  - '**'
-  - '!platform/*/**'
+  - *shared
   - 'platform/web/**'
+  - '.github/workflows/web_builds.yml'
+  - '!tests/**'
