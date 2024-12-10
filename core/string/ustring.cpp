@@ -425,7 +425,26 @@ void String::copy_from(const char32_t *p_cstr) {
 		return;
 	}
 
-	copy_from_unchecked(p_cstr, len);
+	resize(len + 1);
+
+	const char32_t *end = p_cstr + len;
+	char32_t *dst = ptrw();
+
+	for (; p_cstr < end; ++p_cstr, ++dst) {
+		const char32_t chr = *p_cstr;
+		if ((chr & 0xfffff800) == 0xd800) {
+			print_unicode_error(vformat("Unpaired surrogate (%x)", (uint32_t)chr));
+			*dst = _replacement_char;
+			continue;
+		}
+		if (chr > 0x10ffff) {
+			print_unicode_error(vformat("Invalid unicode codepoint (%x)", (uint32_t)chr));
+			*dst = _replacement_char;
+			continue;
+		}
+		*dst = chr;
+	}
+	*dst = 0;
 }
 
 void String::copy_from(const char32_t *p_cstr, const int p_clip_to) {
@@ -450,29 +469,13 @@ void String::copy_from(const char32_t *p_cstr, const int p_clip_to) {
 
 // assumes the following have already been validated:
 // p_char != nullptr
-// p_length > 0
 // p_length <= p_char strlen
+// p_char is a valid UTF32 string
 void String::copy_from_unchecked(const char32_t *p_char, const int p_length) {
-	resize(p_length + 1);
-
-	const char32_t *end = p_char + p_length;
+	resize(p_length + 1); // + 1 for NULL
 	char32_t *dst = ptrw();
-
-	for (; p_char < end; ++p_char, ++dst) {
-		const char32_t chr = *p_char;
-		if ((chr & 0xfffff800) == 0xd800) {
-			print_unicode_error(vformat("Unpaired surrogate (%x)", (uint32_t)chr));
-			*dst = _replacement_char;
-			continue;
-		}
-		if (chr > 0x10ffff) {
-			print_unicode_error(vformat("Invalid unicode codepoint (%x)", (uint32_t)chr));
-			*dst = _replacement_char;
-			continue;
-		}
-		*dst = chr;
-	}
-	*dst = 0;
+	memcpy(dst, p_char, p_length * sizeof(char32_t));
+	*(dst + p_length) = 0;
 }
 
 void String::operator=(const char *p_str) {
