@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  list.h                                                                */
+/*  linked_list.h                                                         */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,8 +28,8 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef LIST_H
-#define LIST_H
+#ifndef LINKED_LIST_H
+#define LINKED_LIST_H
 
 #include "core/error/error_macros.h"
 #include "core/os/memory.h"
@@ -44,13 +44,13 @@
  */
 
 template <typename T, typename A = DefaultAllocator>
-class List {
+class LinkedList {
 	struct _Data;
 
 public:
 	class Element {
 	private:
-		friend class List<T, A>;
+		friend class LinkedList<T, A>;
 
 		T value;
 		Element *next_ptr = nullptr;
@@ -132,7 +132,7 @@ public:
 			data->erase(this);
 		}
 
-		void transfer_to_back(List<T, A> *p_dst_list);
+		void transfer_to_back(LinkedList<T, A> *p_dst_list);
 
 		_FORCE_INLINE_ Element() {}
 	};
@@ -514,7 +514,7 @@ public:
 	/**
 	 * copy the list
 	 */
-	void operator=(const List &p_list) {
+	void operator=(const LinkedList &p_list) {
 		clear();
 		const Element *it = p_list.front();
 		while (it) {
@@ -753,7 +753,7 @@ public:
 	/**
 	 * copy constructor for the list
 	 */
-	List(const List &p_list) {
+	LinkedList(const LinkedList &p_list) {
 		const Element *it = p_list.front();
 		while (it) {
 			push_back(it->get());
@@ -761,9 +761,9 @@ public:
 		}
 	}
 
-	List() {}
+	LinkedList() {}
 
-	~List() {
+	~LinkedList() {
 		clear();
 		if (_data) {
 			ERR_FAIL_COND(_data->size_cache);
@@ -773,7 +773,7 @@ public:
 };
 
 template <typename T, typename A>
-void List<T, A>::Element::transfer_to_back(List<T, A> *p_dst_list) {
+void LinkedList<T, A>::Element::transfer_to_back(LinkedList<T, A> *p_dst_list) {
 	// Detach from current.
 
 	if (data->first == this) {
@@ -809,4 +809,4 @@ void List<T, A>::Element::transfer_to_back(List<T, A> *p_dst_list) {
 	p_dst_list->_data->size_cache++;
 }
 
-#endif // LIST_H
+#endif // LINKED_LIST_H
