@@ -296,6 +296,8 @@ typename CowData<T>::USize CowData<T>::_copy_on_write() {
 	SafeNumeric<USize> *refc = _get_refcount();
 
 	USize rc = refc->get();
+	CRASH_COND_MSG(rc == 0, "Reference count was 0 at the time of fork.");
+
 	if (unlikely(rc > 1)) {
 		/* in use by more than me */
 		USize current_size = *_get_size();
