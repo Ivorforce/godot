@@ -71,8 +71,8 @@ private:
 	CowData<T> _cowdata;
 
 public:
-	bool push_back(T p_elem);
-	_FORCE_INLINE_ bool append(const T &p_elem) { return push_back(p_elem); } //alias
+	bool push_back(T p_elem) { return _cowdata.push_back(std::move(p_elem)); }
+	_FORCE_INLINE_ bool append(T p_elem) { return push_back(std::move(p_elem)); } //alias
 	void fill(T p_elem);
 
 	void remove_at(Size p_index) { _cowdata.remove_at(p_index); }
@@ -311,15 +311,6 @@ void Vector<T>::append_array(const Vector<T> &p_other) {
 	for (Size i = 0; i < ds; ++i) {
 		ptrw()[bs + i] = p_other[i];
 	}
-}
-
-template <typename T>
-bool Vector<T>::push_back(T p_elem) {
-	Error err = resize(size() + 1);
-	ERR_FAIL_COND_V(err, true);
-	set(size() - 1, p_elem);
-
-	return false;
 }
 
 template <typename T>

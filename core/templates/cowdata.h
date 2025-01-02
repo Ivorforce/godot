@@ -245,16 +245,39 @@ public:
 		resize(len - 1);
 	}
 
-	Error insert(Size p_pos, const T &p_val) {
-		Size new_size = size() + 1;
-		ERR_FAIL_INDEX_V(p_pos, new_size, ERR_INVALID_PARAMETER);
-		Error err = resize(new_size);
+	Error push_back(T p_val) {
+		const Size size_ = size();
+		const Error err = _fork_allocate(size_ + 1);
 		ERR_FAIL_COND_V(err, err);
+
 		T *p = ptrw();
-		for (Size i = new_size - 1; i > p_pos; i--) {
+		// Insert the new element at the last slot.
+		memnew_placement(&p[size_], T(std::move(p_val)));
+
+		return OK;
+	}
+
+	Error insert(Size p_pos, T p_val) {
+		const Size size_ = size();
+		if (p_pos == size_) {
+			// Required because the below code cannot handle appending to size 0.
+			return push_back(std::move(p_val));
+		}
+
+		ERR_FAIL_INDEX_V(p_pos, size_ + 1, ERR_INVALID_PARAMETER);
+		const Error err = _fork_allocate(size_ + 1);
+		ERR_FAIL_COND_V(err, err);
+
+		T *p = ptrw();
+		// Fill the new slot by moving the last element.
+		memnew_placement(&p[size_], T(std::move(p[size_ - 1])));
+
+		// Move all elements up one element.
+		for (Size i = size_ - 1; i > p_pos; i--) {
 			p[i] = std::move(p[i - 1]);
 		}
-		p[p_pos] = p_val;
+		// Insert the new element.
+		p[p_pos] = std::move(p_val);
 
 		return OK;
 	}
