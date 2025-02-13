@@ -241,7 +241,7 @@ bool FileAccessEncrypted::store_buffer(const uint8_t *p_src, uint64_t p_length) 
 	ERR_FAIL_NULL_V(p_src, false);
 
 	if (pos + p_length >= get_length()) {
-		ERR_FAIL_COND_V(data.resize(pos + p_length) != OK, false);
+		ERR_FAIL_COND_V(data.attempt_resize(pos + p_length) != OK, false);
 	}
 
 	memcpy(data.ptrw() + pos, p_src, p_length);

@@ -178,7 +178,8 @@ public:
 	_FORCE_INLINE_ char16_t *ptrw() { return _cowdata.ptrw(); }
 	_FORCE_INLINE_ const char16_t *ptr() const { return _cowdata.ptr(); }
 	_FORCE_INLINE_ int size() const { return _cowdata.size(); }
-	Error resize(int p_size) { return _cowdata.resize(p_size); }
+	void resize(int p_size) { _cowdata.resize(p_size); }
+	[[nodiscard]] Error attempt_resize(int p_size) { return _cowdata.attempt_resize(p_size); }
 
 	_FORCE_INLINE_ char16_t get(int p_index) const { return _cowdata.get(p_index); }
 	_FORCE_INLINE_ void set(int p_index, const char16_t &p_elem) { _cowdata.set(p_index, p_elem); }
@@ -223,7 +224,8 @@ public:
 	_FORCE_INLINE_ char *ptrw() { return _cowdata.ptrw(); }
 	_FORCE_INLINE_ const char *ptr() const { return _cowdata.ptr(); }
 	_FORCE_INLINE_ int size() const { return _cowdata.size(); }
-	Error resize(int p_size) { return _cowdata.resize(p_size); }
+	void resize(int p_size) { _cowdata.resize(p_size); }
+	[[nodiscard]] Error attempt_resize(int p_size) { return _cowdata.attempt_resize(p_size); }
 
 	_FORCE_INLINE_ char get(int p_index) const { return _cowdata.get(p_index); }
 	_FORCE_INLINE_ void set(int p_index, const char &p_elem) { _cowdata.set(p_index, p_elem); }
@@ -330,12 +332,13 @@ public:
 
 	void remove_at(int p_index) { _cowdata.remove_at(p_index); }
 
-	_FORCE_INLINE_ void clear() { resize(0); }
+	_FORCE_INLINE_ void clear() { _cowdata.clear(); }
 
 	_FORCE_INLINE_ char32_t get(int p_index) const { return _cowdata.get(p_index); }
 	_FORCE_INLINE_ void set(int p_index, const char32_t &p_elem) { _cowdata.set(p_index, p_elem); }
 	_FORCE_INLINE_ int size() const { return _cowdata.size(); }
-	Error resize(int p_size) { return _cowdata.resize(p_size); }
+	void resize(int p_size) { return _cowdata.resize(p_size); }
+	[[nodiscard]] Error attempt_resize(int p_size) { return _cowdata.attempt_resize(p_size); }
 
 	_FORCE_INLINE_ const char32_t &operator[](int p_index) const {
 		if (unlikely(p_index == _cowdata.size())) {

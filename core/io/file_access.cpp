@@ -408,7 +408,7 @@ class CharBuffer {
 	int written = 0;
 
 	bool grow() {
-		if (vector.resize(next_power_of_2(1 + written)) != OK) {
+		if (vector.attempt_resize(next_power_of_2(1 + written)) != OK) {
 			return false;
 		}
 
@@ -541,7 +541,7 @@ Vector<uint8_t> FileAccess::get_buffer(int64_t p_length) const {
 		return data;
 	}
 
-	Error err = data.resize(p_length);
+	Error err = data.attempt_resize(p_length);
 	ERR_FAIL_COND_V_MSG(err != OK, data, vformat("Can't resize data to %d elements.", p_length));
 
 	uint8_t *w = data.ptrw();

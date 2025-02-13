@@ -38,7 +38,7 @@ Error ImageLoaderTGA::decode_tga_rle(const uint8_t *p_compressed_buffer, size_t 
 	Error error;
 
 	Vector<uint8_t> pixels;
-	error = pixels.resize(p_pixel_size);
+	error = pixels.attempt_resize(p_pixel_size);
 	if (error != OK) {
 		return error;
 	}
@@ -314,7 +314,7 @@ Error ImageLoaderTGA::load_image(Ref<Image> p_image, Ref<FileAccess> f, BitField
 		Vector<uint8_t> palette;
 
 		if (has_color_map) {
-			err = palette.resize(color_map_size);
+			err = palette.attempt_resize(color_map_size);
 			if (err == OK) {
 				uint8_t *palette_w = palette.ptrw();
 				f->get_buffer(&palette_w[0], color_map_size);

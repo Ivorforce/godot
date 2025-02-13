@@ -69,7 +69,10 @@ Error ImageLoaderBMP::convert_to_image(Ref<Image> p_image,
 			data_len = width * height * 4;
 		}
 		ERR_FAIL_COND_V_MSG(data_len == 0, ERR_BUG, "Couldn't parse the BMP image data.");
-		err = data.resize(data_len);
+		err = data.attempt_resize(data_len);
+		if (err) {
+			return err;
+		}
 
 		uint8_t *data_w = data.ptrw();
 		uint8_t *write_buffer = data_w;
@@ -296,7 +299,7 @@ Error ImageLoaderBMP::load_image(Ref<Image> p_image, Ref<FileAccess> f, BitField
 			uint32_t bmp_buffer_size = (bmp_header.bmp_file_header.bmp_file_size - bmp_header.bmp_file_header.bmp_file_offset);
 
 			Vector<uint8_t> bmp_buffer;
-			err = bmp_buffer.resize(bmp_buffer_size);
+			err = bmp_buffer.attempt_resize(bmp_buffer_size);
 			if (err == OK) {
 				uint8_t *bmp_buffer_w = bmp_buffer.ptrw();
 				f->get_buffer(bmp_buffer_w, bmp_buffer_size);

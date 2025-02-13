@@ -37,7 +37,7 @@
 Error ImageLoaderPNG::load_image(Ref<Image> p_image, Ref<FileAccess> f, BitField<ImageFormatLoader::LoaderFlags> p_flags, float p_scale) {
 	const uint64_t buffer_size = f->get_length();
 	Vector<uint8_t> file_buffer;
-	Error err = file_buffer.resize(buffer_size);
+	Error err = file_buffer.attempt_resize(buffer_size);
 	if (err) {
 		return err;
 	}
@@ -78,7 +78,7 @@ Vector<uint8_t> ImageLoaderPNG::lossless_pack_png(const Ref<Image> &p_image) {
 	Vector<uint8_t> out_buffer;
 
 	// add Godot's own "PNG " prefix
-	if (out_buffer.resize(4) != OK) {
+	if (out_buffer.attempt_resize(4) != OK) {
 		ERR_FAIL_V(Vector<uint8_t>());
 	}
 

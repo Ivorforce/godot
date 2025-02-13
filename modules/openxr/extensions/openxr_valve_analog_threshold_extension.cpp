@@ -186,7 +186,7 @@ PackedByteArray OpenXRAnalogThresholdModifier::get_ip_modification() {
 	}
 
 	// Copy into byte array so we can return it.
-	ERR_FAIL_COND_V(ret.resize(sizeof(XrInteractionProfileAnalogThresholdVALVE)) != OK, ret);
+	ERR_FAIL_COND_V(ret.attempt_resize(sizeof(XrInteractionProfileAnalogThresholdVALVE)) != OK, ret);
 	memcpy(ret.ptrw(), &analog_threshold, sizeof(XrInteractionProfileAnalogThresholdVALVE));
 
 	return ret;

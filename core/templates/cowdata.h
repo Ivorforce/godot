@@ -232,7 +232,13 @@ public:
 	}
 
 	template <bool p_ensure_zero = false>
-	Error resize(Size p_size);
+	[[nodiscard]] Error attempt_resize(Size p_size);
+
+	template <bool p_ensure_zero = false>
+	void resize(Size p_size) {
+		// Could also be ERR_INVALID_PARAMETER
+		CRASH_COND_MSG(attempt_resize<p_ensure_zero>(p_size) == ERR_OUT_OF_MEMORY, "Out of memory");
+	}
 
 	_FORCE_INLINE_ void remove_at(Size p_index) {
 		ERR_FAIL_INDEX(p_index, size());
@@ -242,13 +248,13 @@ public:
 			p[i] = std::move(p[i + 1]);
 		}
 
-		resize(len - 1);
+		_ALLOW_DISCARD_ attempt_resize(len - 1);
 	}
 
 	Error insert(Size p_pos, const T &p_val) {
 		Size new_size = size() + 1;
 		ERR_FAIL_INDEX_V(p_pos, new_size, ERR_INVALID_PARAMETER);
-		Error err = resize(new_size);
+		Error err = attempt_resize(new_size);
 		ERR_FAIL_COND_V(err, err);
 		T *p = ptrw();
 		for (Size i = new_size - 1; i > p_pos; i--) {
@@ -387,7 +393,7 @@ Error CowData<T>::_fork_allocate(USize p_size) {
 
 template <typename T>
 template <bool p_ensure_zero>
-Error CowData<T>::resize(Size p_size) {
+Error CowData<T>::attempt_resize(Size p_size) {
 	ERR_FAIL_COND_V(p_size < 0, ERR_INVALID_PARAMETER);
 
 	const Size prev_size = size();
@@ -511,10 +517,7 @@ void CowData<T>::_ref(const CowData &p_from) {
 
 template <typename T>
 CowData<T>::CowData(std::initializer_list<T> p_init) {
-	Error err = resize(p_init.size());
-	if (err != OK) {
-		return;
-	}
+	resize(p_init.size());
 
 	Size i = 0;
 	for (const T &element : p_init) {

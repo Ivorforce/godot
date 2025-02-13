@@ -304,7 +304,7 @@ bool FileAccessCompressed::store_buffer(const uint8_t *p_src, uint64_t p_length)
 	}
 	if (write_max > write_buffer_size) {
 		write_buffer_size = next_power_of_2(write_max);
-		ERR_FAIL_COND_V(buffer.resize(write_buffer_size) != OK, false);
+		ERR_FAIL_COND_V(buffer.attempt_resize(write_buffer_size) != OK, false);
 		write_ptr = buffer.ptrw();
 	}
 

@@ -139,7 +139,7 @@ void Char16String::copy_from(const char16_t *p_cstr) {
 		return;
 	}
 
-	Error err = resize(++len); // include terminating null char
+	Error err = attempt_resize(++len); // include terminating null char
 
 	ERR_FAIL_COND_MSG(err != OK, "Failed to copy char16_t string.");
 
@@ -206,7 +206,7 @@ void CharString::copy_from(const char *p_cstr) {
 		return;
 	}
 
-	Error err = resize(++len); // include terminating null char
+	Error err = attempt_resize(++len); // include terminating null char
 
 	ERR_FAIL_COND_MSG(err != OK, "Failed to copy C-string.");
 

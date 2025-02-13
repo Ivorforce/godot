@@ -106,7 +106,7 @@ Error png_to_image(const uint8_t *p_source, size_t p_size, bool p_force_linear, 
 
 	const png_uint_32 stride = PNG_IMAGE_ROW_STRIDE(png_img);
 	Vector<uint8_t> buffer;
-	Error err = buffer.resize(PNG_IMAGE_BUFFER_SIZE(png_img, stride));
+	Error err = buffer.attempt_resize(PNG_IMAGE_BUFFER_SIZE(png_img, stride));
 	if (err) {
 		png_image_free(&png_img); // only required when we return before finish_read
 		return err;
@@ -174,7 +174,7 @@ Error image_to_png(const Ref<Image> &p_image, Vector<uint8_t> &p_buffer) {
 	size_t compressed_size = png_size_estimate;
 	int success = 0;
 	{ // scope writer lifetime
-		Error err = p_buffer.resize(buffer_offset + png_size_estimate);
+		Error err = p_buffer.attempt_resize(buffer_offset + png_size_estimate);
 		ERR_FAIL_COND_V(err, err);
 
 		uint8_t *writer = p_buffer.ptrw();
@@ -187,7 +187,7 @@ Error image_to_png(const Ref<Image> &p_image, Vector<uint8_t> &p_buffer) {
 		ERR_FAIL_COND_V(compressed_size <= png_size_estimate, FAILED);
 
 		// write failed due to buffer size, resize and retry
-		Error err = p_buffer.resize(buffer_offset + compressed_size);
+		Error err = p_buffer.attempt_resize(buffer_offset + compressed_size);
 		ERR_FAIL_COND_V(err, err);
 
 		uint8_t *writer = p_buffer.ptrw();
@@ -198,7 +198,7 @@ Error image_to_png(const Ref<Image> &p_image, Vector<uint8_t> &p_buffer) {
 	}
 
 	// trim buffer size to content
-	Error err = p_buffer.resize(buffer_offset + compressed_size);
+	Error err = p_buffer.attempt_resize(buffer_offset + compressed_size);
 	ERR_FAIL_COND_V(err, err);
 
 	return OK;
