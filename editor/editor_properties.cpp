@@ -2717,7 +2717,7 @@ void EditorPropertyNodePath::_node_assign() {
 
 	Variant val = get_edited_property_value();
 	Node *n = nullptr;
-	if (val.get_type() == Variant::Type::NODE_PATH) {
+	if (val.get_type() == Variant::BuiltinType::NODE_PATH) {
 		Node *base_node = get_base_node();
 		n = base_node == nullptr ? nullptr : base_node->get_node_or_null(val);
 	} else {

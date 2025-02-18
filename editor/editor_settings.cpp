@@ -244,7 +244,7 @@ void EditorSettings::_initial_set(const StringName &p_name, const Variant &p_val
 
 struct _EVCSort {
 	String name;
-	Variant::Type type = Variant::Type::NIL;
+	Variant::Type type = Variant::BuiltinType::NIL;
 	int order = 0;
 	bool basic = false;
 	bool save = false;

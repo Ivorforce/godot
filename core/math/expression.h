@@ -203,7 +203,7 @@ private:
 	};
 
 	struct ConstructorNode : public ENode {
-		Variant::Type data_type = Variant::Type::NIL;
+		Variant::Type data_type = Variant::BuiltinType::NIL;
 		Vector<ENode *> arguments;
 
 		ConstructorNode() {

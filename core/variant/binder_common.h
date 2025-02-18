@@ -180,7 +180,7 @@ VARIANT_ENUM_CAST(VerticalAlignment);
 VARIANT_ENUM_CAST(InlineAlignment);
 VARIANT_ENUM_CAST(PropertyHint);
 VARIANT_BITFIELD_CAST(PropertyUsageFlags);
-VARIANT_ENUM_CAST(Variant::Type);
+VARIANT_ENUM_CAST(Variant::BuiltinType);
 VARIANT_ENUM_CAST(Variant::Operator);
 
 // Key

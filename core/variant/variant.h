@@ -85,7 +85,8 @@ typedef Vector<Vector4> PackedVector4Array;
 class Variant {
 public:
 	// If this changes the table in variant_op must be updated
-	enum Type {
+	using Type = int;
+	enum BuiltinType : Type {
 		NIL,
 
 		// atomic types
@@ -133,9 +134,9 @@ public:
 		PACKED_VECTOR3_ARRAY,
 		PACKED_COLOR_ARRAY,
 		PACKED_VECTOR4_ARRAY,
-
-		VARIANT_MAX
 	};
+
+	static constexpr Type VARIANT_MAX = Type(PACKED_VECTOR4_ARRAY + 1);
 
 	enum {
 		// Maximum recursion depth allowed when serializing variants.
@@ -174,7 +175,9 @@ private:
 	// Basis/Transform3D (48, 96 if double), Projection (64, 128 if double),
 	// and PackedArray/Array/Dictionary (platform-dependent).
 
+public:
 	Type type = NIL;
+private:
 
 	struct ObjData {
 		ObjectID id;
@@ -257,6 +260,7 @@ private:
 	_ALWAYS_INLINE_ ObjData &_get_obj();
 	_ALWAYS_INLINE_ const ObjData &_get_obj() const;
 
+public:
 	union {
 		bool _bool;
 		int64_t _int;
@@ -270,6 +274,7 @@ private:
 		void *_ptr; //generic pointer
 		uint8_t _mem[sizeof(ObjData) > (sizeof(real_t) * 4) ? sizeof(ObjData) : (sizeof(real_t) * 4)]{ 0 };
 	} _data alignas(8);
+private:
 
 	void reference(const Variant &p_variant);
 

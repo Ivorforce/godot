@@ -386,7 +386,7 @@ int Array::find_custom(const Callable &p_callable, int p_from) const {
 			ERR_FAIL_V_MSG(ret, vformat("Error calling method from 'find_custom': %s.", Variant::get_callable_error_text(p_callable, argptrs, 1, ce)));
 		}
 
-		ERR_FAIL_COND_V_MSG(res.get_type() != Variant::Type::BOOL, ret, "Error on method from 'find_custom': Return type of callable must be boolean.");
+		ERR_FAIL_COND_V_MSG(res.get_type() != Variant::BuiltinType::BOOL, ret, "Error on method from 'find_custom': Return type of callable must be boolean.");
 		if (res.operator bool()) {
 			return i;
 		}
@@ -446,7 +446,7 @@ int Array::rfind_custom(const Callable &p_callable, int p_from) const {
 			ERR_FAIL_V_MSG(-1, vformat("Error calling method from 'rfind_custom': %s.", Variant::get_callable_error_text(p_callable, argptrs, 1, ce)));
 		}
 
-		ERR_FAIL_COND_V_MSG(res.get_type() != Variant::Type::BOOL, -1, "Error on method from 'rfind_custom': Return type of callable must be boolean.");
+		ERR_FAIL_COND_V_MSG(res.get_type() != Variant::BuiltinType::BOOL, -1, "Error on method from 'rfind_custom': Return type of callable must be boolean.");
 		if (res.operator bool()) {
 			return i;
 		}

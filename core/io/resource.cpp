@@ -381,22 +381,22 @@ Ref<Resource> Resource::duplicate(bool p_subresources) const {
 		Variant p = get(E.name);
 
 		switch (p.get_type()) {
-			case Variant::Type::DICTIONARY:
-			case Variant::Type::ARRAY:
-			case Variant::Type::PACKED_BYTE_ARRAY:
-			case Variant::Type::PACKED_COLOR_ARRAY:
-			case Variant::Type::PACKED_INT32_ARRAY:
-			case Variant::Type::PACKED_INT64_ARRAY:
-			case Variant::Type::PACKED_FLOAT32_ARRAY:
-			case Variant::Type::PACKED_FLOAT64_ARRAY:
-			case Variant::Type::PACKED_STRING_ARRAY:
-			case Variant::Type::PACKED_VECTOR2_ARRAY:
-			case Variant::Type::PACKED_VECTOR3_ARRAY:
-			case Variant::Type::PACKED_VECTOR4_ARRAY: {
+			case Variant::BuiltinType::DICTIONARY:
+			case Variant::BuiltinType::ARRAY:
+			case Variant::BuiltinType::PACKED_BYTE_ARRAY:
+			case Variant::BuiltinType::PACKED_COLOR_ARRAY:
+			case Variant::BuiltinType::PACKED_INT32_ARRAY:
+			case Variant::BuiltinType::PACKED_INT64_ARRAY:
+			case Variant::BuiltinType::PACKED_FLOAT32_ARRAY:
+			case Variant::BuiltinType::PACKED_FLOAT64_ARRAY:
+			case Variant::BuiltinType::PACKED_STRING_ARRAY:
+			case Variant::BuiltinType::PACKED_VECTOR2_ARRAY:
+			case Variant::BuiltinType::PACKED_VECTOR3_ARRAY:
+			case Variant::BuiltinType::PACKED_VECTOR4_ARRAY: {
 				r->set(E.name, p.duplicate(p_subresources));
 			} break;
 
-			case Variant::Type::OBJECT: {
+			case Variant::BuiltinType::OBJECT: {
 				if (!(E.usage & PROPERTY_USAGE_NEVER_DUPLICATE) && (p_subresources || (E.usage & PROPERTY_USAGE_ALWAYS_DUPLICATE))) {
 					Ref<Resource> sr = p;
 					if (sr.is_valid()) {

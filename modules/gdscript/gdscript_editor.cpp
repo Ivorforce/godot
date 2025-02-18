@@ -991,7 +991,7 @@ static void _find_annotation_arguments(const GDScriptParser::AnnotationNode *p_a
 
 static void _find_built_in_variants(HashMap<String, ScriptLanguage::CodeCompletionOption> &r_result, bool exclude_nil = false) {
 	for (int i = 0; i < Variant::VARIANT_MAX; i++) {
-		if (!exclude_nil && Variant::Type(i) == Variant::Type::NIL) {
+		if (!exclude_nil && Variant::Type(i) == Variant::BuiltinType::NIL) {
 			ScriptLanguage::CodeCompletionOption option("null", ScriptLanguage::CODE_COMPLETION_KIND_CLASS);
 			r_result.insert(option.display, option);
 		} else {
@@ -1782,7 +1782,7 @@ static bool _guess_expression_type(GDScriptParser::CompletionContext &p_context,
 			} break;
 			case GDScriptParser::Node::CALL: {
 				const GDScriptParser::CallNode *call = static_cast<const GDScriptParser::CallNode *>(p_expression);
-				if (GDScriptParser::get_builtin_type(call->function_name) < Variant::VARIANT_MAX) {
+				if (GDScriptParser::get_builtin_type(call->function_name) >= 0) {
 					r_type.type.type_source = GDScriptParser::DataType::ANNOTATED_EXPLICIT;
 					r_type.type.kind = GDScriptParser::DataType::BUILTIN;
 					r_type.type.builtin_type = GDScriptParser::get_builtin_type(call->function_name);
@@ -3124,7 +3124,7 @@ static void _find_call_arguments(GDScriptParser::CompletionContext &p_context, c
 			const GDScriptParser::IdentifierNode *base_identifier = static_cast<const GDScriptParser::IdentifierNode *>(subscript->base);
 
 			Variant::Type method_type = GDScriptParser::get_builtin_type(base_identifier->name);
-			if (method_type < Variant::VARIANT_MAX) {
+			if (method_type >= 0) {
 				Variant v;
 				Callable::CallError err;
 				Variant::construct(method_type, v, nullptr, 0, err);
@@ -3169,7 +3169,7 @@ static void _find_call_arguments(GDScriptParser::CompletionContext &p_context, c
 		MethodInfo info = GDScriptUtilityFunctions::get_function_info(call->function_name);
 		r_arghint = _make_arguments_hint(info, p_argidx);
 		return;
-	} else if (GDScriptParser::get_builtin_type(call->function_name) < Variant::VARIANT_MAX) {
+	} else if (GDScriptParser::get_builtin_type(call->function_name) >= 0) {
 		// Complete constructor.
 		List<MethodInfo> constructors;
 		Variant::get_constructor_list(GDScriptParser::get_builtin_type(call->function_name), &constructors);

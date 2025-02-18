@@ -30,6 +30,7 @@
 
 #include "variant.h"
 
+#include "variant_db.h"
 #include "core/debugger/engine_debugger.h"
 #include "core/io/json.h"
 #include "core/io/resource.h"
@@ -168,6 +169,9 @@ String Variant::get_type_name(Variant::Type p_type) {
 			return "PackedVector4Array";
 		}
 		default: {
+			if (VariantDB::is_custom_type(p_type)) {
+				return VariantDB::get(p_type).get_name();
+			}
 		}
 	}
 
@@ -1310,6 +1314,14 @@ void Variant::reference(const Variant &p_variant) {
 			}
 		} break;
 		default: {
+			ERR_FAIL_COND_MSG(!VariantDB::is_custom_type(p_variant.type), "Invalid Variant::Type specified");
+			const VariantExtensionType &extension_type = VariantDB::get(p_variant.type);
+			if (extension_type.is_trivial()) {
+				_data = p_variant._data;
+			}
+			else {
+				extension_type.reference_init(*this, p_variant);
+			}
 		}
 	}
 }
@@ -1479,7 +1491,13 @@ void Variant::_clear_internal() {
 			PackedArrayRefBase::destroy(_data.packed_array);
 		} break;
 		default: {
-			// Not needed, there is no point. The following do not allocate memory:
+			if (VariantDB::is_custom_type(type)) {
+				const VariantExtensionType &variant_extension = VariantDB::get(type);
+				if (!variant_extension.is_trivial()) {
+					variant_extension.destruct(*this);
+				}
+			}
+			// Others not needed, there is no point. The following do not allocate memory:
 			// VECTOR2, VECTOR3, VECTOR4, RECT2, PLANE, QUATERNION, COLOR.
 		}
 	}
@@ -1738,6 +1756,11 @@ String Variant::stringify(int recursion_count) const {
 			return "RID(" + itos(s.get_id()) + ")";
 		}
 		default: {
+			if (VariantDB::is_custom_type(type)) {
+				const VariantExtensionType &variant_extension = VariantDB::get(type);
+				return variant_extension.stringify(*this, recursion_count);
+			}
+
 			return "<" + get_type_name(type) + ">";
 		}
 	}
@@ -2787,6 +2810,18 @@ void Variant::operator=(const Variant &p_variant) {
 			_data.packed_array = PackedArrayRef<Vector4>::reference_from(_data.packed_array, p_variant._data.packed_array);
 		} break;
 		default: {
+			ERR_FAIL_COND_MSG(!VariantDB::is_custom_type(p_variant.type), "Invalid Variant::Type specified");
+
+			// TODO Could be optimized with a dedicated "reference" function, without calling clear.
+			_clear_internal();
+			type = p_variant.type;
+			const VariantExtensionType &extension_type = VariantDB::get(p_variant.type);
+			if (extension_type.is_trivial()) {
+				_data = p_variant._data;
+			}
+			else {
+				extension_type.reference_init(*this, p_variant);
+			}
 		}
 	}
 }

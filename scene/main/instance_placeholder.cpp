@@ -130,7 +130,7 @@ void InstancePlaceholder::set_value_on_instance(InstancePlaceholder *p_placehold
 	Variant::Type placeholder_type = p_set.value.get_type();
 
 	// Arrays are a special case, because their containing type might be different.
-	if (current_type != Variant::Type::ARRAY) {
+	if (current_type != Variant::BuiltinType::ARRAY) {
 		// Check if the variant types match.
 		if (Variant::evaluate(Variant::OP_EQUAL, current_type, placeholder_type)) {
 			p_instance->set(p_set.name, p_set.value, &is_valid);
@@ -161,9 +161,9 @@ void InstancePlaceholder::set_value_on_instance(InstancePlaceholder *p_placehold
 	}
 
 	switch (current_type) {
-		case Variant::Type::NIL: {
+		case Variant::BuiltinType::NIL: {
 			Ref<Resource> resource = p_set.value;
-			if (placeholder_type != Variant::Type::NODE_PATH && resource.is_null()) {
+			if (placeholder_type != Variant::BuiltinType::NODE_PATH && resource.is_null()) {
 				break;
 			}
 			// If it's nil but we have a NodePath or a Resource, we guess what works.
@@ -175,15 +175,15 @@ void InstancePlaceholder::set_value_on_instance(InstancePlaceholder *p_placehold
 			p_instance->set(p_set.name, try_get_node(p_placeholder, p_instance, p_set.value), &is_valid);
 			break;
 		}
-		case Variant::Type::OBJECT: {
-			if (placeholder_type != Variant::Type::NODE_PATH) {
+		case Variant::BuiltinType::OBJECT: {
+			if (placeholder_type != Variant::BuiltinType::NODE_PATH) {
 				break;
 			}
 			// Easiest case, we want a node, but we have a deferred NodePath.
 			p_instance->set(p_set.name, try_get_node(p_placeholder, p_instance, p_set.value));
 			break;
 		}
-		case Variant::Type::ARRAY: {
+		case Variant::BuiltinType::ARRAY: {
 			// If we have reached here it means our array types don't match,
 			// so we will convert the placeholder array into the correct type
 			// and resolve nodes if necessary.
@@ -193,7 +193,7 @@ void InstancePlaceholder::set_value_on_instance(InstancePlaceholder *p_placehold
 			converted_array = current_array.duplicate();
 			converted_array.resize(placeholder_array.size());
 
-			if (Variant::evaluate(Variant::OP_EQUAL, current_array.get_typed_builtin(), Variant::Type::NODE_PATH)) {
+			if (Variant::evaluate(Variant::OP_EQUAL, current_array.get_typed_builtin(), Variant::BuiltinType::NODE_PATH)) {
 				// We want a typed NodePath array.
 				for (int i = 0; i < placeholder_array.size(); i++) {
 					converted_array.set(i, placeholder_array[i]);

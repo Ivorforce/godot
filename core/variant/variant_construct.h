@@ -41,6 +41,15 @@
 #include "core/templates/local_vector.h"
 #include "core/templates/oa_hash_map.h"
 
+struct VariantConstructData {
+	void (*construct)(Variant &r_base, const Variant **p_args, Callable::CallError &r_error) = nullptr;
+	Variant::ValidatedConstructor validated_construct = nullptr;
+	Variant::PTRConstructor ptr_construct = nullptr;
+	Variant::Type (*get_argument_type)(int) = nullptr;
+	int argument_count = 0;
+	Vector<String> arg_names;
+};
+
 template <typename T>
 struct PtrConstruct {};
 
@@ -150,6 +159,18 @@ public:
 	}
 };
 
+template <typename T>
+static VariantConstructData make_constructor(const Vector<String> &arg_names) {
+	VariantConstructData cd;
+	cd.construct = T::construct;
+	cd.validated_construct = T::validated_construct;
+	cd.ptr_construct = T::ptr_construct;
+	cd.get_argument_type = T::get_argument_type;
+	cd.argument_count = T::get_argument_count();
+	cd.arg_names = arg_names;
+	return cd;
+}
+
 class VariantConstructorObject {
 public:
 	static void construct(Variant &r_ret, const Variant **p_args, Callable::CallError &r_error) {
@@ -241,9 +262,9 @@ public:
 		VariantTypeChanger<T>::change(&r_ret);
 		const String src_str = *p_args[0];
 
-		if (r_ret.get_type() == Variant::Type::INT) {
+		if (r_ret.get_type() == Variant::BuiltinType::INT) {
 			r_ret = src_str.to_int();
-		} else if (r_ret.get_type() == Variant::Type::FLOAT) {
+		} else if (r_ret.get_type() == Variant::BuiltinType::FLOAT) {
 			r_ret = src_str.to_float();
 		}
 	}
@@ -252,9 +273,9 @@ public:
 		VariantTypeChanger<T>::change(r_ret);
 		const String &src_str = *VariantGetInternalPtr<String>::get_ptr(p_args[0]);
 		T ret = Variant();
-		if (r_ret->get_type() == Variant::Type::INT) {
+		if (r_ret->get_type() == Variant::BuiltinType::INT) {
 			ret = src_str.to_int();
-		} else if (r_ret->get_type() == Variant::Type::FLOAT) {
+		} else if (r_ret->get_type() == Variant::BuiltinType::FLOAT) {
 			ret = src_str.to_float();
 		}
 		*r_ret = ret;
@@ -264,9 +285,9 @@ public:
 		String src_str = PtrToArg<String>::convert(p_args[0]);
 		T dst_var = Variant();
 		Variant type_test = Variant(dst_var);
-		if (type_test.get_type() == Variant::Type::INT) {
+		if (type_test.get_type() == Variant::BuiltinType::INT) {
 			dst_var = src_str.to_int();
-		} else if (type_test.get_type() == Variant::Type::FLOAT) {
+		} else if (type_test.get_type() == Variant::BuiltinType::FLOAT) {
 			dst_var = src_str.to_float();
 		}
 		PtrConstruct<T>::construct(dst_var, base);

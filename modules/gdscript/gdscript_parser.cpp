@@ -38,6 +38,8 @@
 #include "core/math/math_defs.h"
 #include "scene/main/multiplayer_api.h"
 
+#include <core/variant/variant_db.h>
+
 #ifdef DEBUG_ENABLED
 #include "core/string/string_builder.h"
 #include "servers/text_server.h"
@@ -65,7 +67,13 @@ Variant::Type GDScriptParser::get_builtin_type(const StringName &p_type) {
 	if (builtin_types.has(p_type)) {
 		return builtin_types[p_type];
 	}
-	return Variant::VARIANT_MAX;
+
+	const Variant::Type *custom_type_ptr = VariantDB::id_for_name(p_type);
+	if (custom_type_ptr) {
+		return *custom_type_ptr;
+	}
+
+	return -1;
 }
 
 #ifdef TOOLS_ENABLED
@@ -3199,7 +3207,7 @@ GDScriptParser::ExpressionNode *GDScriptParser::parse_attribute(ExpressionNode *
 		if (p_previous_operand && p_previous_operand->type == Node::IDENTIFIER) {
 			const IdentifierNode *id = static_cast<const IdentifierNode *>(p_previous_operand);
 			Variant::Type builtin_type = get_builtin_type(id->name);
-			if (builtin_type < Variant::VARIANT_MAX) {
+			if (builtin_type >= 0) {
 				make_completion_context(COMPLETION_BUILT_IN_TYPE_CONSTANT_OR_STATIC_METHOD, builtin_type);
 				is_builtin = true;
 			}

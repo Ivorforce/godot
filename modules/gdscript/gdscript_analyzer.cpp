@@ -44,6 +44,8 @@
 #include "core/templates/hash_map.h"
 #include "scene/main/node.h"
 
+#include <core/variant/variant_db.h>
+
 #if defined(TOOLS_ENABLED) && !defined(DISABLE_DEPRECATED)
 #define SUGGEST_GODOT4_RENAMES
 #include "editor/renames_map_3_to_4.h"
@@ -278,7 +280,7 @@ Error GDScriptAnalyzer::check_native_member_name_conflict(const StringName &p_me
 		return ERR_PARSE_ERROR;
 	}
 
-	if (GDScriptParser::get_builtin_type(p_member_name) < Variant::VARIANT_MAX) {
+	if (GDScriptParser::get_builtin_type(p_member_name) >= 0) {
 		push_error(vformat(R"(The member "%s" cannot have the same name as a builtin type.)", p_member_name), p_member_node);
 		return ERR_PARSE_ERROR;
 	}
@@ -393,7 +395,7 @@ Error GDScriptAnalyzer::resolve_class_inheritance(GDScriptParser::ClassNode *p_c
 
 	if (p_class->identifier) {
 		StringName class_name = p_class->identifier->name;
-		if (GDScriptParser::get_builtin_type(class_name) < Variant::VARIANT_MAX) {
+		if (GDScriptParser::get_builtin_type(class_name) >= 0) {
 			push_error(vformat(R"(Class "%s" hides a built-in type.)", class_name), p_class->identifier);
 		} else if (class_exists(class_name)) {
 			push_error(vformat(R"(Class "%s" hides a native class.)", class_name), p_class->identifier);
@@ -738,7 +740,7 @@ GDScriptParser::DataType GDScriptAnalyzer::resolve_datatype(GDScriptParser::Type
 				return bad_type;
 			}
 			result.kind = GDScriptParser::DataType::VARIANT;
-		} else if (GDScriptParser::get_builtin_type(first) < Variant::VARIANT_MAX) {
+		} else if (GDScriptParser::get_builtin_type(first) >= 0) {
 			// Built-in types.
 			const Variant::Type builtin_type = GDScriptParser::get_builtin_type(first);
 
@@ -841,7 +843,8 @@ GDScriptParser::DataType GDScriptAnalyzer::resolve_datatype(GDScriptParser::Type
 				return bad_type;
 			}
 			result = make_global_enum_type(first, StringName());
-		} else {
+		}
+		else {
 			// Classes in current scope.
 			List<GDScriptParser::ClassNode *> script_classes;
 			bool found = false;
@@ -3197,7 +3200,7 @@ void GDScriptAnalyzer::reduce_call(GDScriptParser::CallNode *p_call, bool p_is_a
 		}
 
 		Variant::Type builtin_type = GDScriptParser::get_builtin_type(function_name);
-		if (builtin_type < Variant::VARIANT_MAX) {
+		if (builtin_type >= 0) {
 			// Is a builtin constructor.
 			call_type.type_source = GDScriptParser::DataType::ANNOTATED_EXPLICIT;
 			call_type.kind = GDScriptParser::DataType::BUILTIN;
@@ -3540,7 +3543,7 @@ void GDScriptAnalyzer::reduce_call(GDScriptParser::CallNode *p_call, bool p_is_a
 		if (subscript->base->type == GDScriptParser::Node::IDENTIFIER) {
 			base_id = static_cast<GDScriptParser::IdentifierNode *>(subscript->base);
 		}
-		if (base_id && GDScriptParser::get_builtin_type(base_id->name) < Variant::VARIANT_MAX) {
+		if (base_id && GDScriptParser::get_builtin_type(base_id->name) >= 0) {
 			base_type = make_builtin_meta_type(GDScriptParser::get_builtin_type(base_id->name));
 		} else {
 			reduce_expression(subscript->base);
@@ -4478,7 +4481,7 @@ void GDScriptAnalyzer::reduce_identifier(GDScriptParser::IdentifierNode *p_ident
 	// Not a local or a member, so check globals.
 
 	Variant::Type builtin_type = GDScriptParser::get_builtin_type(name);
-	if (builtin_type < Variant::VARIANT_MAX) {
+	if (builtin_type >= 0) {
 		if (can_be_builtin) {
 			p_identifier->set_datatype(make_builtin_meta_type(builtin_type));
 			return;
@@ -5547,7 +5550,7 @@ GDScriptParser::DataType GDScriptAnalyzer::type_from_property(const PropertyInfo
 			elem_type.type_source = GDScriptParser::DataType::ANNOTATED_EXPLICIT;
 
 			Variant::Type elem_builtin_type = GDScriptParser::get_builtin_type(elem_type_name);
-			if (elem_builtin_type < Variant::VARIANT_MAX) {
+			if (elem_builtin_type >= 0) {
 				// Builtin type.
 				elem_type.kind = GDScriptParser::DataType::BUILTIN;
 				elem_type.builtin_type = elem_builtin_type;
@@ -5574,7 +5577,7 @@ GDScriptParser::DataType GDScriptAnalyzer::type_from_property(const PropertyInfo
 			key_elem_type.type_source = GDScriptParser::DataType::ANNOTATED_EXPLICIT;
 
 			Variant::Type key_elem_builtin_type = GDScriptParser::get_builtin_type(key_elem_type_name);
-			if (key_elem_builtin_type < Variant::VARIANT_MAX) {
+			if (key_elem_builtin_type >= 0) {
 				// Builtin type.
 				key_elem_type.kind = GDScriptParser::DataType::BUILTIN;
 				key_elem_type.builtin_type = key_elem_builtin_type;
@@ -5599,7 +5602,7 @@ GDScriptParser::DataType GDScriptAnalyzer::type_from_property(const PropertyInfo
 			value_elem_type.type_source = GDScriptParser::DataType::ANNOTATED_EXPLICIT;
 
 			Variant::Type value_elem_builtin_type = GDScriptParser::get_builtin_type(value_elem_type_name);
-			if (value_elem_builtin_type < Variant::VARIANT_MAX) {
+			if (value_elem_builtin_type >= 0) {
 				// Builtin type.
 				value_elem_type.kind = GDScriptParser::DataType::BUILTIN;
 				value_elem_type.builtin_type = value_elem_builtin_type;
@@ -5888,7 +5891,7 @@ void GDScriptAnalyzer::is_shadowing(GDScriptParser::IdentifierNode *p_identifier
 			String class_path = ScriptServer::get_global_class_path(name).get_file();
 			parser->push_warning(p_identifier, GDScriptWarning::SHADOWED_GLOBAL_IDENTIFIER, p_context, name, vformat(R"(global class defined in "%s")", class_path));
 			return;
-		} else if (GDScriptParser::get_builtin_type(name) < Variant::VARIANT_MAX) {
+		} else if (GDScriptParser::get_builtin_type(name) >= 0) {
 			parser->push_warning(p_identifier, GDScriptWarning::SHADOWED_GLOBAL_IDENTIFIER, p_context, name, "built-in type");
 			return;
 		}
