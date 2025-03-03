@@ -169,6 +169,7 @@
 #include "editor/translations/editor_translation_parser.h"
 #include "editor/translations/packed_scene_translation_parser_plugin.h"
 #include "editor/version_control/version_control_editor_plugin.h"
+#include "core/profiling/profiling.h"
 
 #ifdef VULKAN_ENABLED
 #include "editor/shader/shader_baker/shader_baker_export_plugin_platform_vulkan.h"
@@ -7559,7 +7560,13 @@ void EditorNode::_print_handler_impl(const String &p_string, bool p_error, bool 
 }
 
 static void _execute_thread(void *p_ud) {
+	GodotProfileSetThreadName("EditorNode::_execute_thread");
 	EditorNode::ExecuteThreadArgs *eta = (EditorNode::ExecuteThreadArgs *)p_ud;
+
+	const auto gpz_name = eta->path.utf8();
+	GodotProfileZoneNamedN(_profile_zone, "external process");
+	GodotProfileZoneRename(_profile_zone,  gpz_name );
+
 	Error err = OS::get_singleton()->execute(eta->path, eta->args, &eta->output, &eta->exitcode, true, &eta->execute_output_mutex);
 	print_verbose("Thread exit status: " + itos(eta->exitcode));
 	if (err != OK) {

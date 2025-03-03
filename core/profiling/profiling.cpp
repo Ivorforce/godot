@@ -33,8 +33,7 @@
 #if defined(GODOT_USE_TRACY)
 void godot_init_profiler() {
 	// Send our first event to tracy; otherwise it doesn't start collecting data.
-	// FrameMark is kind of fitting because it communicates "this is where we started tracing".
-	FrameMark;
+	TracyMessage("tracy_init",10);
 }
 #elif defined(GODOT_USE_PERFETTO)
 PERFETTO_TRACK_EVENT_STATIC_STORAGE();

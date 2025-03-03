@@ -34,6 +34,7 @@
 #include "core/os/thread.h"
 #include "core/templates/hash_map.h"
 #include "core/variant/typed_array.h"
+#include "core/profiling/profiling.h"
 
 /************* RESOLVER ******************/
 
@@ -107,6 +108,7 @@ struct _IP_ResolverPrivate {
 	}
 
 	static void _thread_function(void *self) {
+		GodotProfileSetThreadName("_IP_ResolverPrivate");
 		_IP_ResolverPrivate *ipr = static_cast<_IP_ResolverPrivate *>(self);
 
 		while (!ipr->thread_abort.is_set()) {

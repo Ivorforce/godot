@@ -39,6 +39,7 @@
 #include "core/templates/pair.h"
 #include "core/templates/self_list.h"
 #include "core/variant/variant.h"
+#include "core/profiling/profiling.h"
 
 class GDScriptInstance;
 class GDScript;
@@ -561,6 +562,13 @@ private:
 		HashMap<String, NativeProfile> native_calls;
 		HashMap<String, NativeProfile> last_native_calls;
 	} profile;
+#endif
+
+#ifdef GODOT_USE_TRACY
+	CharString profiler_name;
+	CharString profiler_function;
+	CharString profiler_file;
+	SourceLocation profiler_sld;
 #endif
 
 	String _get_call_error(const String &p_where, const Variant **p_argptrs, int p_argcount, const Variant &p_ret, const Callable::CallError &p_err) const;

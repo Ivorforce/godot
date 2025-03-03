@@ -35,6 +35,8 @@
 #include "core/os/safe_binary_mutex.h"
 #include "core/os/thread_safe.h"
 
+#include "core/profiling/profiling.h"
+
 WorkerThreadPool::Task *const WorkerThreadPool::ThreadData::YIELDING = (Task *)1;
 
 HashMap<StringName, WorkerThreadPool *> WorkerThreadPool::named_pools;
@@ -182,6 +184,7 @@ void WorkerThreadPool::_process_task(Task *p_task) {
 }
 
 void WorkerThreadPool::_thread_function(void *p_user) {
+	GodotProfileSetThreadName("ThreadPoolWorker");
 	ThreadData *thread_data = (ThreadData *)p_user;
 	Thread::set_name(vformat("WorkerThread %d", thread_data->index));
 
