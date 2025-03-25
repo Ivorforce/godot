@@ -67,13 +67,6 @@ class GDExtensionMethodBind : public MethodBind {
 #endif
 
 protected:
-	virtual Variant::Type _gen_argument_type(int p_arg) const override {
-		if (p_arg < 0) {
-			return return_value_info.type;
-		} else {
-			return arguments_info.get(p_arg).type;
-		}
-	}
 	virtual PropertyInfo _gen_argument_type_info(int p_arg) const override {
 		if (p_arg < 0) {
 			return return_value_info;
@@ -216,13 +209,18 @@ public:
 		set_hint_flags(p_method_info->method_flags);
 		argument_count = p_method_info->argument_count;
 		vararg = p_method_info->method_flags & GDEXTENSION_METHOD_FLAG_VARARG;
-		_set_returns(p_method_info->has_return_value);
-		_set_const(p_method_info->method_flags & GDEXTENSION_METHOD_FLAG_CONST);
-		_set_static(p_method_info->method_flags & GDEXTENSION_METHOD_FLAG_STATIC);
-#ifdef DEBUG_METHODS_ENABLED
-		_generate_argument_types(p_method_info->argument_count);
-#endif
-		set_argument_count(p_method_info->argument_count);
+		_returns = p_method_info->has_return_value;
+		_const = p_method_info->method_flags & GDEXTENSION_METHOD_FLAG_CONST;
+		_static = p_method_info->method_flags & GDEXTENSION_METHOD_FLAG_STATIC;
+
+		Variant::Type *arg_types = memnew_arr(Variant::Type, 1 + p_method_info->argument_count);
+		arg_types[0] = return_value_info.type;
+		int argument_types_index = 1;
+		for (const PropertyInfo &property_info : arguments_info) {
+			arg_types[argument_types_index++] = property_info.type;
+		}
+		argument_count = p_method_info->argument_count;
+		argument_types = arg_types;
 
 		Vector<Variant> defargs;
 		defargs.resize(p_method_info->default_argument_count);
@@ -235,6 +233,10 @@ public:
 
 	explicit GDExtensionMethodBind(const GDExtensionClassMethodInfo *p_method_info) {
 		update(p_method_info);
+	}
+
+	~GDExtensionMethodBind() override {
+		memdelete_arr(argument_types);
 	}
 };
 

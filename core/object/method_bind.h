@@ -43,26 +43,20 @@ class MethodBind {
 	StringName instance_class;
 	Vector<Variant> default_arguments;
 	int default_argument_count = 0;
-	int argument_count = 0;
 
-	bool _static = false;
-	bool _const = false;
-	bool _returns = false;
 	bool _returns_raw_obj_ptr = false;
 
 protected:
-	Variant::Type *argument_types = nullptr;
+	bool _static = false;
+	bool _const = false;
+	bool _returns = false;
+
+	int argument_count = 0;
+	const Variant::Type *argument_types = nullptr;
 #ifdef DEBUG_METHODS_ENABLED
 	Vector<StringName> arg_names;
 #endif
-	void _set_const(bool p_const);
-	void _set_static(bool p_static);
-	void _set_returns(bool p_returns);
-	virtual Variant::Type _gen_argument_type(int p_arg) const = 0;
 	virtual PropertyInfo _gen_argument_type_info(int p_arg) const = 0;
-	void _generate_argument_types(int p_count);
-
-	void set_argument_count(int p_count) { argument_count = p_count; }
 
 public:
 	_FORCE_INLINE_ const Vector<Variant> &get_default_arguments() const { return default_arguments; }
@@ -135,7 +129,7 @@ public:
 	uint32_t get_hash() const;
 
 	MethodBind();
-	virtual ~MethodBind();
+	virtual ~MethodBind() {}
 };
 
 // MethodBindVarArg base CRTP
@@ -155,10 +149,6 @@ public:
 		} else {
 			return PropertyInfo(Variant::NIL, "arg_" + itos(p_arg), PROPERTY_HINT_NONE, String(), PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT);
 		}
-	}
-
-	virtual Variant::Type _gen_argument_type(int p_arg) const override {
-		return _gen_argument_type_info(p_arg).type;
 	}
 
 #ifdef DEBUG_METHODS_ENABLED
@@ -184,7 +174,7 @@ public:
 			const MethodInfo &p_method_info,
 			bool p_return_nil_is_variant) :
 			method(p_method), method_info(p_method_info) {
-		set_argument_count(method_info.arguments.size());
+		argument_count = method_info.arguments.size();
 		Variant::Type *at = memnew_arr(Variant::Type, method_info.arguments.size() + 1);
 		at[0] = _gen_return_type_info().type;
 		if (method_info.arguments.size()) {
@@ -208,7 +198,11 @@ public:
 			method_info.return_val.usage |= PROPERTY_USAGE_NIL_IS_VARIANT;
 		}
 
-		_set_returns(should_returns);
+		_returns = should_returns;
+	}
+
+	~MethodBindVarArgBase() override {
+		memdelete_arr(argument_types);
 	}
 
 private:
@@ -312,13 +306,7 @@ class MethodBindT : public MethodBind {
 	void (MB_T::*method)(P...);
 
 protected:
-	virtual Variant::Type _gen_argument_type(int p_arg) const override {
-		if (p_arg >= 0 && p_arg < (int)sizeof...(P)) {
-			return call_get_argument_type<P...>(p_arg);
-		} else {
-			return Variant::NIL;
-		}
-	}
+	static constexpr Variant::Type static_argument_types[] = { Variant::NIL, GetTypeInfo<P>::VARIANT_TYPE... };
 
 	virtual PropertyInfo _gen_argument_type_info(int p_arg) const override {
 		PropertyInfo pi;
@@ -369,8 +357,8 @@ public:
 
 	MethodBindT(void (MB_T::*p_method)(P...)) {
 		method = p_method;
-		_generate_argument_types(sizeof...(P));
-		set_argument_count(sizeof...(P));
+		argument_types = static_argument_types;
+		argument_count = std::size(static_argument_types) - 1;
 	}
 };
 
@@ -396,13 +384,7 @@ class MethodBindTC : public MethodBind {
 	void (MB_T::*method)(P...) const;
 
 protected:
-	virtual Variant::Type _gen_argument_type(int p_arg) const override {
-		if (p_arg >= 0 && p_arg < (int)sizeof...(P)) {
-			return call_get_argument_type<P...>(p_arg);
-		} else {
-			return Variant::NIL;
-		}
-	}
+	static constexpr Variant::Type static_argument_types[] = { Variant::NIL, GetTypeInfo<P>::VARIANT_TYPE... };
 
 	virtual PropertyInfo _gen_argument_type_info(int p_arg) const override {
 		PropertyInfo pi;
@@ -453,9 +435,9 @@ public:
 
 	MethodBindTC(void (MB_T::*p_method)(P...) const) {
 		method = p_method;
-		_set_const(true);
-		_generate_argument_types(sizeof...(P));
-		set_argument_count(sizeof...(P));
+		_const = true;
+		argument_types = static_argument_types;
+		argument_count = std::size(static_argument_types) - 1;
 	}
 };
 
@@ -482,13 +464,7 @@ class MethodBindTR : public MethodBind {
 	(P...);
 
 protected:
-	virtual Variant::Type _gen_argument_type(int p_arg) const override {
-		if (p_arg >= 0 && p_arg < (int)sizeof...(P)) {
-			return call_get_argument_type<P...>(p_arg);
-		} else {
-			return GetTypeInfo<R>::VARIANT_TYPE;
-		}
-	}
+	static constexpr Variant::Type static_argument_types[] = { GetTypeInfo<R>::VARIANT_TYPE, GetTypeInfo<P>::VARIANT_TYPE... };
 
 	virtual PropertyInfo _gen_argument_type_info(int p_arg) const override {
 		if (p_arg >= 0 && p_arg < (int)sizeof...(P)) {
@@ -548,9 +524,9 @@ public:
 
 	MethodBindTR(R (MB_T::*p_method)(P...)) {
 		method = p_method;
-		_set_returns(true);
-		_generate_argument_types(sizeof...(P));
-		set_argument_count(sizeof...(P));
+		_returns = true;
+		argument_types = static_argument_types;
+		argument_count = std::size(static_argument_types) - 1;
 	}
 };
 
@@ -578,13 +554,7 @@ class MethodBindTRC : public MethodBind {
 	(P...) const;
 
 protected:
-	virtual Variant::Type _gen_argument_type(int p_arg) const override {
-		if (p_arg >= 0 && p_arg < (int)sizeof...(P)) {
-			return call_get_argument_type<P...>(p_arg);
-		} else {
-			return GetTypeInfo<R>::VARIANT_TYPE;
-		}
-	}
+	static constexpr Variant::Type static_argument_types[] = { GetTypeInfo<R>::VARIANT_TYPE, GetTypeInfo<P>::VARIANT_TYPE... };
 
 	virtual PropertyInfo _gen_argument_type_info(int p_arg) const override {
 		if (p_arg >= 0 && p_arg < (int)sizeof...(P)) {
@@ -644,10 +614,10 @@ public:
 
 	MethodBindTRC(R (MB_T::*p_method)(P...) const) {
 		method = p_method;
-		_set_returns(true);
-		_set_const(true);
-		_generate_argument_types(sizeof...(P));
-		set_argument_count(sizeof...(P));
+		_returns = true;
+		_const = true;
+		argument_types = static_argument_types;
+		argument_count = std::size(static_argument_types) - 1;
 	}
 };
 
@@ -671,13 +641,7 @@ class MethodBindTS : public MethodBind {
 	void (*function)(P...);
 
 protected:
-	virtual Variant::Type _gen_argument_type(int p_arg) const override {
-		if (p_arg >= 0 && p_arg < (int)sizeof...(P)) {
-			return call_get_argument_type<P...>(p_arg);
-		} else {
-			return Variant::NIL;
-		}
-	}
+	static constexpr Variant::Type static_argument_types[] = { Variant::NIL, GetTypeInfo<P>::VARIANT_TYPE... };
 
 	virtual PropertyInfo _gen_argument_type_info(int p_arg) const override {
 		PropertyInfo pi;
@@ -710,9 +674,9 @@ public:
 
 	MethodBindTS(void (*p_function)(P...)) {
 		function = p_function;
-		_generate_argument_types(sizeof...(P));
-		set_argument_count(sizeof...(P));
-		_set_static(true);
+		argument_types = static_argument_types;
+		argument_count = std::size(static_argument_types) - 1;
+		_static = true;
 	}
 };
 
@@ -730,13 +694,7 @@ class MethodBindTRS : public MethodBind {
 	(P...);
 
 protected:
-	virtual Variant::Type _gen_argument_type(int p_arg) const override {
-		if (p_arg >= 0 && p_arg < (int)sizeof...(P)) {
-			return call_get_argument_type<P...>(p_arg);
-		} else {
-			return GetTypeInfo<R>::VARIANT_TYPE;
-		}
-	}
+	static constexpr Variant::Type static_argument_types[] = { GetTypeInfo<R>::VARIANT_TYPE, GetTypeInfo<P>::VARIANT_TYPE... };
 
 	virtual PropertyInfo _gen_argument_type_info(int p_arg) const override {
 		if (p_arg >= 0 && p_arg < (int)sizeof...(P)) {
@@ -776,10 +734,10 @@ public:
 
 	MethodBindTRS(R (*p_function)(P...)) {
 		function = p_function;
-		_generate_argument_types(sizeof...(P));
-		set_argument_count(sizeof...(P));
-		_set_static(true);
-		_set_returns(true);
+		argument_types = static_argument_types;
+		argument_count = std::size(static_argument_types) - 1;
+		_static = true;
+		_returns = true;
 	}
 };
 

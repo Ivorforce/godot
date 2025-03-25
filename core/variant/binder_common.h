@@ -695,26 +695,6 @@ void call_with_validated_object_instance_args_static_retc(T *base, R (*p_method)
 #endif
 
 template <typename Q>
-void call_get_argument_type_helper(int p_arg, int &index, Variant::Type &type) {
-	if (p_arg == index) {
-		type = GetTypeInfo<Q>::VARIANT_TYPE;
-	}
-	index++;
-}
-
-template <typename... P>
-Variant::Type call_get_argument_type(int p_arg) {
-	Variant::Type type = Variant::NIL;
-	int index = 0;
-	// I think rocket science is simpler than modern C++.
-	using expand_type = int[];
-	expand_type a{ 0, (call_get_argument_type_helper<P>(p_arg, index, type), 0)... };
-	(void)a; // Suppress (valid, but unavoidable) -Wunused-variable warning.
-	(void)index; // Suppress GCC warning.
-	return type;
-}
-
-template <typename Q>
 void call_get_argument_type_info_helper(int p_arg, int &index, PropertyInfo &info) {
 	if (p_arg == index) {
 		info = GetTypeInfo<Q>::get_class_info();
@@ -725,10 +705,7 @@ void call_get_argument_type_info_helper(int p_arg, int &index, PropertyInfo &inf
 template <typename... P>
 void call_get_argument_type_info(int p_arg, PropertyInfo &info) {
 	int index = 0;
-	// I think rocket science is simpler than modern C++.
-	using expand_type = int[];
-	expand_type a{ 0, (call_get_argument_type_info_helper<P>(p_arg, index, info), 0)... };
-	(void)a; // Suppress (valid, but unavoidable) -Wunused-variable warning.
+	((call_get_argument_type_info_helper<P>(p_arg, index, info)), ...);
 	(void)index; // Suppress GCC warning.
 }
 
@@ -744,13 +721,9 @@ void call_get_argument_metadata_helper(int p_arg, int &index, GodotTypeInfo::Met
 template <typename... P>
 GodotTypeInfo::Metadata call_get_argument_metadata(int p_arg) {
 	GodotTypeInfo::Metadata md = GodotTypeInfo::METADATA_NONE;
-
 	int index = 0;
-	// I think rocket science is simpler than modern C++.
-	using expand_type = int[];
-	expand_type a{ 0, (call_get_argument_metadata_helper<P>(p_arg, index, md), 0)... };
-	(void)a; // Suppress (valid, but unavoidable) -Wunused-variable warning.
-	(void)index;
+	((call_get_argument_metadata_helper<P>(p_arg, index, md)), ...);
+	(void)index; // Suppress GCC warning.
 	return md;
 }
 

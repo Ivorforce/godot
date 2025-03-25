@@ -39,6 +39,8 @@
 #include "core/variant/binder_common.h"
 #include "core/variant/variant_parser.h"
 
+#include <array>
+
 // Math
 double VariantUtilityFunctions::sin(double arg) {
 	return Math::sin(arg);
@@ -1278,13 +1280,8 @@ static _FORCE_INLINE_ void ptr_call_helperr(R (*p_func)(P...), void *ret, const 
 }
 
 template <typename R, typename... P>
-static _FORCE_INLINE_ int get_arg_count_helperr(R (*p_func)(P...)) {
-	return sizeof...(P);
-}
-
-template <typename R, typename... P>
-static _FORCE_INLINE_ Variant::Type get_arg_type_helperr(R (*p_func)(P...), int p_arg) {
-	return call_get_argument_type<P...>(p_arg);
+static _FORCE_INLINE_ constexpr std::array<Variant::Type, sizeof...(P)> get_args_helperr(R (*p_func)(P...)) {
+	return std::array<Variant::Type, sizeof...(P)>{ GetTypeInfo<P>::VARIANT_TYPE... };
 }
 
 template <typename R, typename... P>
@@ -1330,13 +1327,8 @@ static _FORCE_INLINE_ void ptr_call_helper(void (*p_func)(P...), const void **p_
 }
 
 template <typename... P>
-static _FORCE_INLINE_ int get_arg_count_helper(void (*p_func)(P...)) {
-	return sizeof...(P);
-}
-
-template <typename... P>
-static _FORCE_INLINE_ Variant::Type get_arg_type_helper(void (*p_func)(P...), int p_arg) {
-	return call_get_argument_type<P...>(p_arg);
+static _FORCE_INLINE_ constexpr std::array<Variant::Type, sizeof...(P)> get_args_helper(void (*p_func)(P...)) {
+	return std::array<Variant::Type, sizeof...(P)>{ GetTypeInfo<P>::VARIANT_TYPE... };
 }
 
 template <typename... P>
@@ -1345,6 +1337,7 @@ static _FORCE_INLINE_ Variant::Type get_ret_type_helper(void (*p_func)(P...)) {
 }
 
 #define FUNCBINDR(m_func, m_args, m_category)                                                                    \
+	static constexpr auto Func_##m_func##_argument_types = get_args_helperr(VariantUtilityFunctions::m_func);    \
 	class Func_##m_func {                                                                                        \
 	public:                                                                                                      \
 		static void call(Variant *r_ret, const Variant **p_args, int p_argcount, Callable::CallError &r_error) { \
@@ -1357,10 +1350,11 @@ static _FORCE_INLINE_ Variant::Type get_ret_type_helper(void (*p_func)(P...)) {
 			ptr_call_helperr(VariantUtilityFunctions::m_func, ret, p_args);                                      \
 		}                                                                                                        \
 		static int get_argument_count() {                                                                        \
-			return get_arg_count_helperr(VariantUtilityFunctions::m_func);                                       \
+			return Func_##m_func##_argument_types.size();                                                        \
 		}                                                                                                        \
 		static Variant::Type get_argument_type(int p_arg) {                                                      \
-			return get_arg_type_helperr(VariantUtilityFunctions::m_func, p_arg);                                 \
+			ERR_FAIL_COND_V(p_arg < 0 || p_arg >= get_argument_count(), Variant::NIL);                           \
+			return Func_##m_func##_argument_types[p_arg];                                                        \
 		}                                                                                                        \
 		static Variant::Type get_return_type() {                                                                 \
 			return get_ret_type_helperr(VariantUtilityFunctions::m_func);                                        \
@@ -1626,6 +1620,7 @@ static _FORCE_INLINE_ Variant::Type get_ret_type_helper(void (*p_func)(P...)) {
 #define FUNCBINDVARARGV(m_func, m_args, m_category) FUNCBINDVARARGV_CNAME(m_func, m_func, m_args, m_category)
 
 #define FUNCBIND(m_func, m_args, m_category)                                                                     \
+	static constexpr auto Func_##m_func##_argument_types = get_args_helper(VariantUtilityFunctions::m_func);     \
 	class Func_##m_func {                                                                                        \
 	public:                                                                                                      \
 		static void call(Variant *r_ret, const Variant **p_args, int p_argcount, Callable::CallError &r_error) { \
@@ -1638,10 +1633,11 @@ static _FORCE_INLINE_ Variant::Type get_ret_type_helper(void (*p_func)(P...)) {
 			ptr_call_helper(VariantUtilityFunctions::m_func, p_args);                                            \
 		}                                                                                                        \
 		static int get_argument_count() {                                                                        \
-			return get_arg_count_helper(VariantUtilityFunctions::m_func);                                        \
+			return Func_##m_func##_argument_types.size();                                                        \
 		}                                                                                                        \
 		static Variant::Type get_argument_type(int p_arg) {                                                      \
-			return get_arg_type_helper(VariantUtilityFunctions::m_func, p_arg);                                  \
+			ERR_FAIL_COND_V(p_arg < 0 || p_arg >= get_argument_count(), Variant::NIL);                           \
+			return Func_##m_func##_argument_types[p_arg];                                                        \
 		}                                                                                                        \
 		static Variant::Type get_return_type() {                                                                 \
 			return get_ret_type_helper(VariantUtilityFunctions::m_func);                                         \

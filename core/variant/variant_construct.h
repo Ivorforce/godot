@@ -40,6 +40,8 @@
 #include "core/templates/local_vector.h"
 #include "core/templates/oa_hash_map.h"
 
+#include <array>
+
 template <typename T>
 struct PtrConstruct {};
 
@@ -100,6 +102,8 @@ MAKE_PTRCONSTRUCT(Variant);
 
 template <typename T, typename... P>
 class VariantConstructor {
+	static constexpr Variant::Type static_argument_types[] = { GetTypeInfo<P>::VARIANT_TYPE... };
+
 	template <size_t... Is>
 	static _FORCE_INLINE_ void construct_helper(T &base, const Variant **p_args, Callable::CallError &r_error, IndexSequence<Is...>) {
 		r_error.error = Callable::CallError::CALL_OK;
@@ -141,7 +145,8 @@ public:
 	}
 
 	static Variant::Type get_argument_type(int p_arg) {
-		return call_get_argument_type<P...>(p_arg);
+		ERR_FAIL_COND_V(p_arg < 0 || p_arg >= get_argument_count(), Variant::NIL);
+		return static_argument_types[p_arg];
 	}
 
 	static Variant::Type get_base_type() {

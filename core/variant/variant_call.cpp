@@ -39,6 +39,8 @@
 #include "core/templates/local_vector.h"
 #include "core/templates/oa_hash_map.h"
 
+#include <array>
+
 typedef void (*VariantFunc)(Variant &r_ret, Variant &p_self, const Variant **p_args);
 typedef void (*VariantConstructFunc)(Variant &r_ret, const Variant **p_args);
 
@@ -215,61 +217,32 @@ static _FORCE_INLINE_ void vc_convert_ptrcall(void (T::*method)(P...) const, voi
 }
 
 template <typename R, typename T, typename... P>
-static _FORCE_INLINE_ int vc_get_argument_count(R (T::*method)(P...)) {
-	return sizeof...(P);
+static _FORCE_INLINE_ constexpr std::array<Variant::Type, sizeof...(P)> vc_get_arguments(R (T::*method)(P...)) {
+	return std::array<Variant::Type, sizeof...(P)>{ GetTypeInfo<P>::VARIANT_TYPE... };
 }
 template <typename R, typename T, typename... P>
-static _FORCE_INLINE_ int vc_get_argument_count(R (T::*method)(P...) const) {
-	return sizeof...(P);
+static _FORCE_INLINE_ constexpr std::array<Variant::Type, sizeof...(P)> vc_get_arguments(R (T::*method)(P...) const) {
+	return std::array<Variant::Type, sizeof...(P)>{ GetTypeInfo<P>::VARIANT_TYPE... };
 }
 
 template <typename T, typename... P>
-static _FORCE_INLINE_ int vc_get_argument_count(void (T::*method)(P...)) {
-	return sizeof...(P);
+static _FORCE_INLINE_ constexpr std::array<Variant::Type, sizeof...(P)> vc_get_arguments(void (T::*method)(P...)) {
+	return std::array<Variant::Type, sizeof...(P)>{ GetTypeInfo<P>::VARIANT_TYPE... };
 }
 
 template <typename T, typename... P>
-static _FORCE_INLINE_ int vc_get_argument_count(void (T::*method)(P...) const) {
-	return sizeof...(P);
+static _FORCE_INLINE_ constexpr std::array<Variant::Type, sizeof...(P)> vc_get_arguments(void (T::*method)(P...) const) {
+	return std::array<Variant::Type, sizeof...(P)>{ GetTypeInfo<P>::VARIANT_TYPE... };
 }
 
 template <typename R, typename T, typename... P>
-static _FORCE_INLINE_ int vc_get_argument_count(R (*method)(T *, P...)) {
-	return sizeof...(P);
+static _FORCE_INLINE_ constexpr std::array<Variant::Type, sizeof...(P)> vc_get_arguments(R (*method)(T *, P...)) {
+	return std::array<Variant::Type, sizeof...(P)>{ GetTypeInfo<P>::VARIANT_TYPE... };
 }
 
 template <typename R, typename... P>
-static _FORCE_INLINE_ int vc_get_argument_count_static(R (*method)(P...)) {
-	return sizeof...(P);
-}
-
-template <typename R, typename T, typename... P>
-static _FORCE_INLINE_ Variant::Type vc_get_argument_type(R (T::*method)(P...), int p_arg) {
-	return call_get_argument_type<P...>(p_arg);
-}
-template <typename R, typename T, typename... P>
-static _FORCE_INLINE_ Variant::Type vc_get_argument_type(R (T::*method)(P...) const, int p_arg) {
-	return call_get_argument_type<P...>(p_arg);
-}
-
-template <typename T, typename... P>
-static _FORCE_INLINE_ Variant::Type vc_get_argument_type(void (T::*method)(P...), int p_arg) {
-	return call_get_argument_type<P...>(p_arg);
-}
-
-template <typename T, typename... P>
-static _FORCE_INLINE_ Variant::Type vc_get_argument_type(void (T::*method)(P...) const, int p_arg) {
-	return call_get_argument_type<P...>(p_arg);
-}
-
-template <typename R, typename T, typename... P>
-static _FORCE_INLINE_ Variant::Type vc_get_argument_type(R (*method)(T *, P...), int p_arg) {
-	return call_get_argument_type<P...>(p_arg);
-}
-
-template <typename R, typename... P>
-static _FORCE_INLINE_ Variant::Type vc_get_argument_type_static(R (*method)(P...), int p_arg) {
-	return call_get_argument_type<P...>(p_arg);
+static _FORCE_INLINE_ constexpr std::array<Variant::Type, sizeof...(P)> vc_get_arguments_static(R (*method)(P...)) {
+	return std::array<Variant::Type, sizeof...(P)>{ GetTypeInfo<P>::VARIANT_TYPE... };
 }
 
 template <typename R, typename T, typename... P>
@@ -370,6 +343,7 @@ static _FORCE_INLINE_ Variant::Type vc_get_base_type(void (T::*method)(P...) con
 }
 
 #define METHOD_CLASS(m_class, m_method_name, m_method_ptr)                                                                                                        \
+	static constexpr auto Method_##m_class##_##m_method_name##_argument_types = vc_get_arguments(m_method_ptr);                                                   \
 	struct Method_##m_class##_##m_method_name {                                                                                                                   \
 		static void call(Variant *base, const Variant **p_args, int p_argcount, Variant &r_ret, const Vector<Variant> &p_defvals, Callable::CallError &r_error) { \
 			vc_method_call(m_method_ptr, base, p_args, p_argcount, r_ret, p_defvals, r_error);                                                                    \
@@ -381,10 +355,11 @@ static _FORCE_INLINE_ Variant::Type vc_get_base_type(void (T::*method)(P...) con
 			vc_ptrcall(m_method_ptr, p_base, p_args, r_ret);                                                                                                      \
 		}                                                                                                                                                         \
 		static int get_argument_count() {                                                                                                                         \
-			return vc_get_argument_count(m_method_ptr);                                                                                                           \
+			return Method_##m_class##_##m_method_name##_argument_types.size();                                                                                    \
 		}                                                                                                                                                         \
 		static Variant::Type get_argument_type(int p_arg) {                                                                                                       \
-			return vc_get_argument_type(m_method_ptr, p_arg);                                                                                                     \
+			ERR_FAIL_COND_V(p_arg < 0 || p_arg >= get_argument_count(), Variant::NIL);                                                                            \
+			return Method_##m_class##_##m_method_name##_argument_types[p_arg];                                                                                    \
 		}                                                                                                                                                         \
 		static Variant::Type get_return_type() {                                                                                                                  \
 			return vc_get_return_type(m_method_ptr);                                                                                                              \
@@ -410,6 +385,7 @@ static _FORCE_INLINE_ Variant::Type vc_get_base_type(void (T::*method)(P...) con
 	};
 
 #define CONVERT_METHOD_CLASS(m_class, m_method_name, m_method_ptr)                                                                                                \
+	static constexpr auto Method_##m_class##_##m_method_name##_argument_types = vc_get_arguments(m_method_ptr);                                                   \
 	struct Method_##m_class##_##m_method_name {                                                                                                                   \
 		static void call(Variant *base, const Variant **p_args, int p_argcount, Variant &r_ret, const Vector<Variant> &p_defvals, Callable::CallError &r_error) { \
 			vc_convert_method_call<m_class>(m_method_ptr, base, p_args, p_argcount, r_ret, p_defvals, r_error);                                                   \
@@ -421,10 +397,11 @@ static _FORCE_INLINE_ Variant::Type vc_get_base_type(void (T::*method)(P...) con
 			vc_convert_ptrcall<m_class>(m_method_ptr, p_base, p_args, r_ret);                                                                                     \
 		}                                                                                                                                                         \
 		static int get_argument_count() {                                                                                                                         \
-			return vc_get_argument_count(m_method_ptr);                                                                                                           \
+			return Method_##m_class##_##m_method_name##_argument_types.size();                                                                                    \
 		}                                                                                                                                                         \
 		static Variant::Type get_argument_type(int p_arg) {                                                                                                       \
-			return vc_get_argument_type(m_method_ptr, p_arg);                                                                                                     \
+			ERR_FAIL_COND_V(p_arg < 0 || p_arg >= get_argument_count(), Variant::NIL);                                                                            \
+			return Method_##m_class##_##m_method_name##_argument_types[p_arg];                                                                                    \
 		}                                                                                                                                                         \
 		static Variant::Type get_return_type() {                                                                                                                  \
 			return vc_get_return_type(m_method_ptr);                                                                                                              \
@@ -460,6 +437,7 @@ static _FORCE_INLINE_ void vc_static_ptrcall(void (*method)(P...), const void **
 }
 
 #define STATIC_METHOD_CLASS(m_class, m_method_name, m_method_ptr)                                                                                                 \
+	static constexpr auto Method_##m_class##_##m_method_name##_argument_types = vc_get_arguments_static(m_method_ptr);                                            \
 	struct Method_##m_class##_##m_method_name {                                                                                                                   \
 		static void call(Variant *base, const Variant **p_args, int p_argcount, Variant &r_ret, const Vector<Variant> &p_defvals, Callable::CallError &r_error) { \
 			vc_static_method_call(m_method_ptr, p_args, p_argcount, r_ret, p_defvals, r_error);                                                                   \
@@ -471,10 +449,11 @@ static _FORCE_INLINE_ void vc_static_ptrcall(void (*method)(P...), const void **
 			vc_static_ptrcall(m_method_ptr, p_args, r_ret);                                                                                                       \
 		}                                                                                                                                                         \
 		static int get_argument_count() {                                                                                                                         \
-			return vc_get_argument_count_static(m_method_ptr);                                                                                                    \
+			return Method_##m_class##_##m_method_name##_argument_types.size();                                                                                    \
 		}                                                                                                                                                         \
 		static Variant::Type get_argument_type(int p_arg) {                                                                                                       \
-			return vc_get_argument_type_static(m_method_ptr, p_arg);                                                                                              \
+			ERR_FAIL_COND_V(p_arg < 0 || p_arg >= get_argument_count(), Variant::NIL);                                                                            \
+			return Method_##m_class##_##m_method_name##_argument_types[p_arg];                                                                                    \
 		}                                                                                                                                                         \
 		static Variant::Type get_return_type() {                                                                                                                  \
 			return vc_get_return_type(m_method_ptr);                                                                                                              \
@@ -510,6 +489,7 @@ static _FORCE_INLINE_ void vc_ptrcall(void (*method)(T *, P...), void *p_base, c
 }
 
 #define FUNCTION_CLASS(m_class, m_method_name, m_method_ptr, m_const)                                                                                             \
+	static constexpr auto Method_##m_class##_##m_method_name##_argument_types = vc_get_arguments(m_method_ptr);                                                   \
 	struct Method_##m_class##_##m_method_name {                                                                                                                   \
 		static void call(Variant *base, const Variant **p_args, int p_argcount, Variant &r_ret, const Vector<Variant> &p_defvals, Callable::CallError &r_error) { \
 			vc_method_call_static(m_method_ptr, base, p_args, p_argcount, r_ret, p_defvals, r_error);                                                             \
@@ -521,10 +501,11 @@ static _FORCE_INLINE_ void vc_ptrcall(void (*method)(T *, P...), void *p_base, c
 			vc_ptrcall(m_method_ptr, p_base, p_args, r_ret);                                                                                                      \
 		}                                                                                                                                                         \
 		static int get_argument_count() {                                                                                                                         \
-			return vc_get_argument_count(m_method_ptr);                                                                                                           \
+			return Method_##m_class##_##m_method_name##_argument_types.size();                                                                                    \
 		}                                                                                                                                                         \
 		static Variant::Type get_argument_type(int p_arg) {                                                                                                       \
-			return vc_get_argument_type(m_method_ptr, p_arg);                                                                                                     \
+			ERR_FAIL_COND_V(p_arg < 0 || p_arg >= get_argument_count(), Variant::NIL);                                                                            \
+			return Method_##m_class##_##m_method_name##_argument_types[p_arg];                                                                                    \
 		}                                                                                                                                                         \
 		static Variant::Type get_return_type() {                                                                                                                  \
 			return vc_get_return_type(m_method_ptr);                                                                                                              \
