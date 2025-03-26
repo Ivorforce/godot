@@ -170,7 +170,7 @@ opts.Add(
         ("auto", "none", "custom", "debug", "speed", "speed_trace", "size", "size_extra"),
     )
 )
-opts.Add(BoolVariable("debug_symbols", "Build with debugging symbols", False))
+opts.Add(BoolVariable("debug_symbols", "Build with debugging symbols", True))
 opts.Add(BoolVariable("separate_debug_symbols", "Extract debugging symbols to a separate file", False))
 opts.Add(BoolVariable("debug_paths_relative", "Make file paths in debug symbols relative (if supported)", False))
 opts.Add(EnumVariable("lto", "Link-time optimization (production builds)", "none", ("none", "auto", "thin", "full")))

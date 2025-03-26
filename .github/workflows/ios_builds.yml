@@ -4,7 +4,7 @@ on:
 
 # Global Settings
 env:
-  SCONSFLAGS: verbose=yes warnings=extra werror=yes debug_symbols=no module_text_server_fb_enabled=yes strict_checks=yes
+  SCONSFLAGS: verbose=yes warnings=extra werror=yes debug_symbols=yes module_text_server_fb_enabled=yes strict_checks=yes
 
 jobs:
   ios-template:
