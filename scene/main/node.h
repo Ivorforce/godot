@@ -367,6 +367,8 @@ protected:
 	void _set_use_identity_transform(bool p_enable) { data.use_identity_transform = p_enable; }
 	bool _is_using_identity_transform() const { return data.use_identity_transform; }
 
+	void _find_children(const String &p_pattern, const String &p_type, const String &p_class_path, bool p_recursive, bool p_owned, TypedArray<Node> &r_array) const;
+
 	//call from SceneTree
 	void _call_input(const Ref<InputEvent> &p_event);
 	void _call_shortcut_input(const Ref<InputEvent> &p_event);
