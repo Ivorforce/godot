@@ -1746,7 +1746,7 @@ bool VisualShader::_set(const StringName &p_name, const Variant &p_value) {
 		String typestr = prop_name.get_slicec('/', 1);
 		Type type = TYPE_VERTEX;
 		for (int i = 0; i < TYPE_MAX; i++) {
-			if (typestr == type_string[i]) {
+			if (typestr == Span(type_string[i], strlen(type_string[i]))) {
 				type = Type(i);
 				break;
 			}
@@ -1830,7 +1830,7 @@ bool VisualShader::_get(const StringName &p_name, Variant &r_ret) const {
 		String typestr = prop_name.get_slicec('/', 1);
 		Type type = TYPE_VERTEX;
 		for (int i = 0; i < TYPE_MAX; i++) {
-			if (typestr == type_string[i]) {
+			if (typestr == Span(type_string[i], strlen(type_string[i]))) {
 				type = Type(i);
 				break;
 			}

@@ -317,7 +317,8 @@ struct GodotTestCaseListener : public doctest::IReporter {
 			Error err = OK;
 			OS::get_singleton()->set_has_server_feature_callback(nullptr);
 			for (int i = 0; i < DisplayServer::get_create_function_count(); i++) {
-				if (String("mock") == DisplayServer::get_create_function_name(i)) {
+				const char *fn_name = DisplayServer::get_create_function_name(i);
+				if (String("mock") == Span(fn_name, strlen(fn_name))) {
 					DisplayServer::create(i, "", DisplayServer::WindowMode::WINDOW_MODE_MINIMIZED, DisplayServer::VSyncMode::VSYNC_ENABLED, 0, nullptr, Vector2i(0, 0), DisplayServer::SCREEN_PRIMARY, DisplayServer::CONTEXT_EDITOR, 0, err);
 					break;
 				}

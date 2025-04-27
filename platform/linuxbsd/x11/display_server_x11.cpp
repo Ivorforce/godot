@@ -694,7 +694,7 @@ String DisplayServerX11::_clipboard_get_impl(Atom p_source, Window x11_window, A
 
 	Window selection_owner = XGetSelectionOwner(x11_display, p_source);
 	if (selection_owner == x11_window) {
-		static const char *target_type = "PRIMARY";
+		static const char target_type[] = "PRIMARY";
 		if (p_source != None && get_atom_name(x11_display, p_source) == target_type) {
 			return internal_clipboard_primary;
 		} else {
@@ -3669,7 +3669,7 @@ DisplayServerX11::Property DisplayServerX11::_read_property(Display *p_display, 
 }
 
 static Atom pick_target_from_list(Display *p_display, const Atom *p_list, int p_count) {
-	static const char *target_type = "text/uri-list";
+	static const char target_type[] = "text/uri-list";
 
 	for (int i = 0; i < p_count; i++) {
 		Atom atom = p_list[i];
@@ -3682,7 +3682,7 @@ static Atom pick_target_from_list(Display *p_display, const Atom *p_list, int p_
 }
 
 static Atom pick_target_from_atoms(Display *p_disp, Atom p_t1, Atom p_t2, Atom p_t3) {
-	static const char *target_type = "text/uri-list";
+	static const char target_type[] = "text/uri-list";
 	if (p_t1 != None && get_atom_name(p_disp, p_t1) == target_type) {
 		return p_t1;
 	}
@@ -4124,7 +4124,7 @@ Atom DisplayServerX11::_process_selection_request_target(Atom p_target, Window p
 		// Directly using internal clipboard because we know our window
 		// is the owner during a selection request.
 		CharString clip;
-		static const char *target_type = "PRIMARY";
+		static const char target_type[] = "PRIMARY";
 		if (p_selection != None && get_atom_name(x11_display, p_selection) == target_type) {
 			clip = internal_clipboard_primary.utf8();
 		} else {

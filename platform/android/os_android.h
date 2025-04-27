@@ -87,7 +87,7 @@ private:
 	String get_system_property(const char *key) const;
 
 public:
-	static const char *ANDROID_EXEC_PATH;
+	static const inline char NDROID_EXEC_PATH[] = "apk";
 	static const int DEFAULT_WINDOW_WIDTH = 800;
 	static const int DEFAULT_WINDOW_HEIGHT = 600;
 

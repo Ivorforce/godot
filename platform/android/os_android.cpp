@@ -54,8 +54,6 @@
 #include <dlfcn.h>
 #include <sys/system_properties.h>
 
-const char *OS_Android::ANDROID_EXEC_PATH = "apk";
-
 String _remove_symlink(const String &dir) {
 	// Workaround for Android 6.0+ using a symlink.
 	// Save the current directory.
@@ -894,7 +892,7 @@ OS_Android::OS_Android(GodotJavaWrapper *p_godot_java, GodotIOJavaWrapper *p_god
 }
 
 Error OS_Android::execute(const String &p_path, const List<String> &p_arguments, String *r_pipe, int *r_exitcode, bool read_stderr, Mutex *p_pipe_mutex, bool p_open_console) {
-	if (p_path == ANDROID_EXEC_PATH) {
+	if (p_path == Span(ANDROID_EXEC_PATH, strlen(ANDROID_EXEC_PATH))) {
 		return create_instance(p_arguments);
 	} else {
 		return OS_Unix::execute(p_path, p_arguments, r_pipe, r_exitcode, read_stderr, p_pipe_mutex, p_open_console);
@@ -902,7 +900,7 @@ Error OS_Android::execute(const String &p_path, const List<String> &p_arguments,
 }
 
 Error OS_Android::create_process(const String &p_path, const List<String> &p_arguments, ProcessID *r_child_id, bool p_open_console) {
-	if (p_path == ANDROID_EXEC_PATH) {
+	if (p_path == Span(ANDROID_EXEC_PATH, strlen(ANDROID_EXEC_PATH))) {
 		return create_instance(p_arguments, r_child_id);
 	} else {
 		return OS_Unix::create_process(p_path, p_arguments, r_child_id, p_open_console);

@@ -3807,22 +3807,26 @@ Error EditorExportPlatformAndroid::export_project_helper(const Ref<EditorExportP
 		if (file.ends_with(".png") && file.contains("mipmap")) {
 			for (int i = 0; i < ICON_DENSITIES_COUNT; ++i) {
 				if (main_image.is_valid() && !main_image->is_empty()) {
-					if (file == LAUNCHER_ICONS[i].export_path) {
+					const char *export_path = LAUNCHER_ICONS[i].export_path;
+					if (file == Span(export_path, strlen(export_path))) {
 						_process_launcher_icons(file, main_image, LAUNCHER_ICONS[i].dimensions, data);
 					}
 				}
 				if (foreground.is_valid() && !foreground->is_empty()) {
-					if (file == LAUNCHER_ADAPTIVE_ICON_FOREGROUNDS[i].export_path) {
+					const char *export_path = LAUNCHER_ADAPTIVE_ICON_FOREGROUNDS[i].export_path;
+					if (file == Span(export_path, strlen(export_path))) {
 						_process_launcher_icons(file, foreground, LAUNCHER_ADAPTIVE_ICON_FOREGROUNDS[i].dimensions, data);
 					}
 				}
 				if (background.is_valid() && !background->is_empty()) {
-					if (file == LAUNCHER_ADAPTIVE_ICON_BACKGROUNDS[i].export_path) {
+					const char *export_path = LAUNCHER_ADAPTIVE_ICON_BACKGROUNDS[i].export_path;
+					if (file == Span(export_path, strlen(export_path))) {
 						_process_launcher_icons(file, background, LAUNCHER_ADAPTIVE_ICON_BACKGROUNDS[i].dimensions, data);
 					}
 				}
 				if (monochrome.is_valid() && !monochrome->is_empty()) {
-					if (file == LAUNCHER_ADAPTIVE_ICON_MONOCHROMES[i].export_path) {
+					const char *export_path = LAUNCHER_ADAPTIVE_ICON_MONOCHROMES[i].export_path;
+					if (file == Span(export_path, strlen(export_path))) {
 						_process_launcher_icons(file, monochrome, LAUNCHER_ADAPTIVE_ICON_MONOCHROMES[i].dimensions, data);
 					}
 				}

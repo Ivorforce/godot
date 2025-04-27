@@ -913,7 +913,7 @@ ShaderLanguage::Token ShaderLanguage::_get_token() {
 					int idx = 0;
 
 					while (keyword_list[idx].text) {
-						if (str == keyword_list[idx].text) {
+						if (str == Span(keyword_list[idx].text, strlen(keyword_list[idx].text))) {
 							return _make_token(keyword_list[idx].token);
 						}
 						idx++;
@@ -3654,7 +3654,7 @@ bool ShaderLanguage::_validate_function_call(BlockNode *p_block, const FunctionI
 					{
 						int constarg_idx = 0;
 						while (builtin_func_const_args[constarg_idx].name) {
-							if (String(name) == builtin_func_const_args[constarg_idx].name) {
+							if (String(name) == Span(builtin_func_const_args[constarg_idx].name, strlen(builtin_func_const_args[constarg_idx].name))) {
 								int arg = builtin_func_const_args[constarg_idx].arg + 1;
 								if (p_func->arguments.size() <= arg) {
 									break;
@@ -3685,7 +3685,7 @@ bool ShaderLanguage::_validate_function_call(BlockNode *p_block, const FunctionI
 					//make sure its not an out argument used in the wrong way
 					int outarg_idx = 0;
 					while (builtin_func_out_args[outarg_idx].name) {
-						if (String(name) == builtin_func_out_args[outarg_idx].name) {
+						if (String(name) == Span(builtin_func_out_args[outarg_idx].name, strlen(builtin_func_out_args[outarg_idx].name))) {
 							for (int arg = 0; arg < BuiltinFuncOutArgs::MAX_ARGS; arg++) {
 								int arg_idx = builtin_func_out_args[outarg_idx].arguments[arg];
 								if (arg_idx == -1) {
@@ -11165,7 +11165,7 @@ String ShaderLanguage::get_shader_type(const String &p_code) {
 bool ShaderLanguage::is_builtin_func_out_parameter(const String &p_name, int p_param) {
 	int i = 0;
 	while (builtin_func_out_args[i].name) {
-		if (p_name == builtin_func_out_args[i].name) {
+		if (p_name == Span(builtin_func_out_args[i].name, strlen(builtin_func_out_args[i].name))) {
 			for (int j = 0; j < BuiltinFuncOutArgs::MAX_ARGS; j++) {
 				int arg = builtin_func_out_args[i].arguments[j];
 				if (arg == p_param) {

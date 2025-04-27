@@ -1138,7 +1138,8 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 
 				bool found = false;
 				for (int i = 0; i < AudioDriverManager::get_driver_count(); i++) {
-					if (audio_driver == AudioDriverManager::get_driver(i)->get_name()) {
+					const char *driver_name = AudioDriverManager::get_driver(i)->get_name();
+					if (audio_driver == Span(driver_name, strlen(driver_name))) {
 						found = true;
 					}
 				}
@@ -1191,7 +1192,8 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 
 				bool found = false;
 				for (int i = 0; i < DisplayServer::get_create_function_count(); i++) {
-					if (display_driver == DisplayServer::get_create_function_name(i)) {
+					const char *fn_name = DisplayServer::get_create_function_name(i);
+					if (display_driver == Span(fn_name, strlen(fn_name))) {
 						found = true;
 					}
 				}
@@ -2656,7 +2658,10 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 
 	// Display driver, e.g. X11, Wayland.
 	// Make sure that headless is the last one, which it is assumed to be by design.
-	DEV_ASSERT(NULL_DISPLAY_DRIVER == DisplayServer::get_create_function_name(DisplayServer::get_create_function_count() - 1));
+#ifdef DEV_ENABLED
+	const char *last_display_driver_name = DisplayServer::get_create_function_name(DisplayServer::get_create_function_count() - 1);
+	DEV_ASSERT(NULL_DISPLAY_DRIVER == Span(last_display_driver_name, strlen(last_display_driver_name));
+#endif
 
 	GLOBAL_DEF_NOVAL("display/display_server/driver", "default");
 	GLOBAL_DEF_NOVAL(PropertyInfo(Variant::STRING, "display/display_server/driver.windows", PROPERTY_HINT_ENUM_SUGGESTION, "default,windows,headless"), "default");
@@ -2678,9 +2683,13 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 	}
 
 	// Make sure that dummy is the last one, which it is assumed to be by design.
-	DEV_ASSERT(NULL_AUDIO_DRIVER == AudioDriverManager::get_driver(AudioDriverManager::get_driver_count() - 1)->get_name());
+#ifdef DEV_ENABLED
+	const char *last_display_driver_name = AudioDriverManager::get_driver(AudioDriverManager::get_driver_count() - 1)->get_name();
+	DEV_ASSERT(NULL_DISPLAY_DRIVER == Span(last_display_driver_name, strlen(last_display_driver_name));
+#endif
 	for (int i = 0; i < AudioDriverManager::get_driver_count(); i++) {
-		if (audio_driver == AudioDriverManager::get_driver(i)->get_name()) {
+		const char *driver_name = AudioDriverManager::get_driver(i)->get_name();
+		if (audio_driver == Span(driver_name, strlen(driver_name))) {
 			audio_driver_idx = i;
 			break;
 		}

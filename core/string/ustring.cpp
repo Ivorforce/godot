@@ -314,24 +314,16 @@ String &String::operator+=(char32_t p_char) {
 	return *this;
 }
 
-bool String::operator==(const char *p_str) const {
-	// compare Latin-1 encoded c-string
-	int len = strlen(p_str);
-
-	if (length() != len) {
+bool String::operator==(Span<char> p_str) const {
+	if ((uint64_t)length() != p_str.size()) {
 		return false;
 	}
-	if (is_empty()) {
-		return true;
-	}
 
-	int l = length();
-
-	const char32_t *dst = get_data();
+	const char32_t *dst = ptr();
 
 	// Compare char by char
-	for (int i = 0; i < l; i++) {
-		if ((char32_t)p_str[i] != dst[i]) {
+	for (uint32_t i = 0; i < p_str.size(); i++) {
+		if ((char32_t)p_str.ptr()[i] != dst[i]) {
 			return false;
 		}
 	}
@@ -339,95 +331,12 @@ bool String::operator==(const char *p_str) const {
 	return true;
 }
 
-bool String::operator==(const wchar_t *p_str) const {
-#ifdef WINDOWS_ENABLED
-	// wchar_t is 16-bit, parse as UTF-16
-	return *this == String::utf16((const char16_t *)p_str);
-#else
-	// wchar_t is 32-bit, compare char by char
-	return *this == (const char32_t *)p_str;
-#endif
-}
-
-bool String::operator==(const char32_t *p_str) const {
-	const int len = strlen(p_str);
-
-	if (length() != len) {
+bool String::operator==(Span<char32_t> p_str) const {
+	if ((uint64_t)length() != p_str.size()) {
 		return false;
 	}
-	if (is_empty()) {
-		return true;
-	}
 
-	return memcmp(ptr(), p_str, len * sizeof(char32_t)) == 0;
-}
-
-bool String::operator==(const String &p_str) const {
-	if (length() != p_str.length()) {
-		return false;
-	}
-	if (is_empty()) {
-		return true;
-	}
-
-	return memcmp(ptr(), p_str.ptr(), length() * sizeof(char32_t)) == 0;
-}
-
-bool String::operator==(const Span<char32_t> &p_str_range) const {
-	const int len = p_str_range.size();
-
-	if (length() != len) {
-		return false;
-	}
-	if (is_empty()) {
-		return true;
-	}
-
-	return memcmp(ptr(), p_str_range.ptr(), len * sizeof(char32_t)) == 0;
-}
-
-bool operator==(const char *p_chr, const String &p_str) {
-	return p_str == p_chr;
-}
-
-bool operator==(const wchar_t *p_chr, const String &p_str) {
-#ifdef WINDOWS_ENABLED
-	// wchar_t is 16-bit
-	return p_str == String::utf16((const char16_t *)p_chr);
-#else
-	// wchar_t is 32-bi
-	return p_str == String((const char32_t *)p_chr);
-#endif
-}
-
-bool operator!=(const char *p_chr, const String &p_str) {
-	return !(p_str == p_chr);
-}
-
-bool operator!=(const wchar_t *p_chr, const String &p_str) {
-#ifdef WINDOWS_ENABLED
-	// wchar_t is 16-bit
-	return !(p_str == String::utf16((const char16_t *)p_chr));
-#else
-	// wchar_t is 32-bi
-	return !(p_str == String((const char32_t *)p_chr));
-#endif
-}
-
-bool String::operator!=(const char *p_str) const {
-	return (!(*this == p_str));
-}
-
-bool String::operator!=(const wchar_t *p_str) const {
-	return (!(*this == p_str));
-}
-
-bool String::operator!=(const char32_t *p_str) const {
-	return (!(*this == p_str));
-}
-
-bool String::operator!=(const String &p_str) const {
-	return !((*this == p_str));
+	return memcmp(ptr(), p_str.ptr(), p_str.size() * sizeof(char32_t)) == 0;
 }
 
 bool String::operator<=(const String &p_str) const {
@@ -450,23 +359,6 @@ bool String::operator<(const char *p_str) const {
 		return true;
 	}
 	return str_compare(get_data(), p_str) < 0;
-}
-
-bool String::operator<(const wchar_t *p_str) const {
-	if (is_empty() && p_str[0] == 0) {
-		return false;
-	}
-	if (is_empty()) {
-		return true;
-	}
-
-#ifdef WINDOWS_ENABLED
-	// wchar_t is 16-bit
-	return str_compare(get_data(), String::utf16((const char16_t *)p_str).get_data()) < 0;
-#else
-	// wchar_t is 32-bit
-	return str_compare(get_data(), (const char32_t *)p_str) < 0;
-#endif
 }
 
 bool String::operator<(const char32_t *p_str) const {

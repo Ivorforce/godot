@@ -331,8 +331,6 @@ public:
 
 	/* Compatibility Operators */
 
-	bool operator==(const String &p_str) const;
-	bool operator!=(const String &p_str) const;
 	String operator+(const String &p_str) const;
 	String operator+(const char *p_char) const;
 	String operator+(const wchar_t *p_char) const;
@@ -345,18 +343,28 @@ public:
 	String &operator+=(const wchar_t *p_str);
 	String &operator+=(const char32_t *p_str);
 
-	bool operator==(const char *p_str) const;
-	bool operator==(const wchar_t *p_str) const;
-	bool operator==(const char32_t *p_str) const;
-	bool operator==(const Span<char32_t> &p_str_range) const;
+	/// Note: Assumes latin1.
+	bool operator==(Span<char> p_str) const;
+	bool operator==(Span<char32_t> p_str) const;
 
-	bool operator!=(const char *p_str) const;
-	bool operator!=(const wchar_t *p_str) const;
-	bool operator!=(const char32_t *p_str) const;
+	_FORCE_INLINE_ bool operator!=(Span<char> p_str) const { return !(*this == p_str); }
+	_FORCE_INLINE_ bool operator!=(Span<char32_t> p_str) const { return !(*this == p_str); }
+
+	_FORCE_INLINE_ bool operator==(const String &p_str) const { return *this == p_str.span(); }
+	_FORCE_INLINE_ bool operator!=(const String &p_str) const { return *this != p_str.span(); }
+
+	// Literals
+	template <size_t N>
+	bool operator==(const char (&p_str)[N]) const { return *this == Span(p_str); }
+	template <size_t N>
+	bool operator==(const char32_t (&p_str)[N]) const { return *this == Span(p_str); }
+	template <size_t N>
+	bool operator!=(const char (&p_str)[N]) const { return *this != Span(p_str); }
+	template <size_t N>
+	bool operator!=(const char32_t (&p_str)[N]) const { return *this != Span(p_str); }
 
 	bool operator<(const char32_t *p_str) const;
 	bool operator<(const char *p_str) const;
-	bool operator<(const wchar_t *p_str) const;
 
 	bool operator<(const String &p_str) const;
 	bool operator<=(const String &p_str) const;
@@ -673,10 +681,15 @@ public:
 template <>
 struct is_zero_constructible<String> : std::true_type {};
 
-bool operator==(const char *p_chr, const String &p_str);
-bool operator==(const wchar_t *p_chr, const String &p_str);
-bool operator!=(const char *p_chr, const String &p_str);
-bool operator!=(const wchar_t *p_chr, const String &p_str);
+// Literals
+template <size_t N>
+bool operator==(const char (&p_array)[N], const String &p_str) { return p_str == Span(p_array); }
+template <size_t N>
+bool operator==(const char32_t (&p_array)[N], const String &p_str) { return p_str == Span(p_array); }
+template <size_t N>
+bool operator!=(const char (&p_array)[N], const String &p_str) { return p_str != Span(p_array); }
+template <size_t N>
+bool operator!=(const char32_t (&p_array)[N], const String &p_str) { return p_str != Span(p_array); }
 
 String operator+(const char *p_chr, const String &p_str);
 String operator+(const wchar_t *p_chr, const String &p_str);

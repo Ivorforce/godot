@@ -144,7 +144,7 @@ bool StringName::operator==(const String &p_name) const {
 
 bool StringName::operator==(const char *p_name) const {
 	if (_data) {
-		return _data->name == p_name;
+		return _data->name == Span(p_name, strlen(p_name));
 	}
 
 	return p_name[0] == 0;
@@ -225,13 +225,14 @@ StringName::StringName(const char *p_name, bool p_static) {
 
 	const uint32_t hash = String::hash(p_name);
 	const uint32_t idx = hash & Table::TABLE_MASK;
+	const Span<char> name_span = Span(p_name, strlen(p_name));
 
 	MutexLock lock(Table::mutex);
 	_data = Table::table[idx];
 
 	while (_data) {
 		// compare hash first
-		if (_data->hash == hash && _data->name == p_name) {
+		if (_data->hash == hash && _data->name == name_span) {
 			break;
 		}
 		_data = _data->next;
@@ -337,13 +338,14 @@ StringName StringName::search(const char *p_name) {
 
 	const uint32_t hash = String::hash(p_name);
 	const uint32_t idx = hash & Table::TABLE_MASK;
+	const Span<char> name_span = Span(p_name, strlen(p_name));
 
 	MutexLock lock(Table::mutex);
 	_Data *_data = Table::table[idx];
 
 	while (_data) {
 		// compare hash first
-		if (_data->hash == hash && _data->name == p_name) {
+		if (_data->hash == hash && _data->name == name_span) {
 			break;
 		}
 		_data = _data->next;

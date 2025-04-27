@@ -1560,7 +1560,7 @@ void Input::_get_mapped_hat_events(const JoyDeviceMapping &mapping, HatDir p_hat
 
 JoyButton Input::_get_output_button(const String &output) {
 	for (int i = 0; i < (int)JoyButton::SDL_MAX; i++) {
-		if (output == _joy_buttons[i]) {
+		if (output == Span(_joy_buttons[i], strlen(_joy_buttons[i]))) {
 			return JoyButton(i);
 		}
 	}
@@ -1569,7 +1569,7 @@ JoyButton Input::_get_output_button(const String &output) {
 
 JoyAxis Input::_get_output_axis(const String &output) {
 	for (int i = 0; i < (int)JoyAxis::SDL_MAX; i++) {
-		if (output == _joy_axes[i]) {
+		if (output == Span(_joy_axes[i], strlen(_joy_axes[i]))) {
 			return JoyAxis(i);
 		}
 	}

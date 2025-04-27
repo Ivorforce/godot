@@ -350,7 +350,7 @@ static int find_face_blend_shape(const StringName &p_name) {
 				break;
 			}
 
-			if (name == n) {
+			if (name == Span(n, strlen(n))) {
 				return entry.blend;
 			}
 		}

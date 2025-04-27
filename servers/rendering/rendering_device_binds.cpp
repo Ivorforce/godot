@@ -72,7 +72,7 @@ Error RDShaderFile::parse_versions_from_text(const String &p_text, const String 
 					reading_versions = true;
 				} else {
 					for (int i = 0; i < RD::SHADER_STAGE_MAX; i++) {
-						if (section == stage_str[i]) {
+						if (section == Span(stage_str[i], strlen(stage_str[i]))) {
 							if (stage_found[i]) {
 								base_error = "Invalid shader file, stage appears twice: " + section;
 								break;

@@ -263,10 +263,11 @@ void JoypadLinux::close_joypads() {
 }
 
 void JoypadLinux::close_joypad(const char *p_devpath) {
+	const Span<char> devpath(p_devpath, strlen(p_devpath));
 	for (int i = 0; i < JOYPADS_MAX; i++) {
 		MutexLock lock(joypads_mutex[i]);
 		Joypad &joypad = joypads[i];
-		if (joypads[i].devpath == p_devpath) {
+		if (joypads[i].devpath == devpath) {
 			close_joypad(joypad, i);
 		}
 	}

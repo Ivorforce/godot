@@ -6820,7 +6820,7 @@ bool TileData::_set(const StringName &p_name, const Variant &p_value) {
 		// Terrains.
 		for (int i = 0; i < TileSet::CELL_NEIGHBOR_MAX; i++) {
 			TileSet::CellNeighbor bit = TileSet::CellNeighbor(i);
-			if (components[1] == TileSet::CELL_NEIGHBOR_ENUM_TO_TEXT[i]) {
+			if (components[1] == Span(TileSet::CELL_NEIGHBOR_ENUM_TO_TEXT[i], strlen(TileSet::CELL_NEIGHBOR_ENUM_TO_TEXT[i]))) {
 				set_terrain_peering_bit(bit, p_value);
 				return true;
 			}
@@ -6931,7 +6931,7 @@ bool TileData::_get(const StringName &p_name, Variant &r_ret) const {
 		else if (components.size() == 2 && components[0] == "terrains_peering_bit") {
 			// Terrains.
 			for (int i = 0; i < TileSet::CELL_NEIGHBOR_MAX; i++) {
-				if (components[1] == TileSet::CELL_NEIGHBOR_ENUM_TO_TEXT[i]) {
+				if (components[1] == Span(TileSet::CELL_NEIGHBOR_ENUM_TO_TEXT[i], strlen(TileSet::CELL_NEIGHBOR_ENUM_TO_TEXT[i]))) {
 					r_ret = terrain_peering_bits[i];
 					return true;
 				}
