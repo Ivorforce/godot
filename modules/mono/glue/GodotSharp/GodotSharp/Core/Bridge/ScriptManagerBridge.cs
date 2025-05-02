@@ -104,6 +104,7 @@ namespace Godot.Bridge
             }
             catch (Exception e)
             {
+                Console.WriteLine(e);
                 ExceptionUtils.LogException(e);
                 return IntPtr.Zero;
             }
