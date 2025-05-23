@@ -268,6 +268,9 @@ class [[nodiscard]] String {
 	static constexpr char32_t _null = 0;
 	static constexpr char32_t _replacement_char = 0xfffd;
 
+	template <size_t N>
+	friend class StaticString;
+
 	// Known-length copy.
 	void copy_from_unchecked(const char32_t *p_char, int p_length);
 
@@ -303,6 +306,8 @@ class [[nodiscard]] String {
 	int _count(const String &p_string, int p_from, int p_to, bool p_case_insensitive) const;
 	int _count(const char *p_string, int p_from, int p_to, bool p_case_insensitive) const;
 	String _separate_compound_words() const;
+
+	explicit String(CowData<char32_t> &&cowdata) : _cowdata(std::move(cowdata)) {}
 
 public:
 	enum {
@@ -683,6 +688,20 @@ public:
 // Zero-constructing String initializes _cowdata.ptr() to nullptr and thus empty.
 template <>
 struct is_zero_constructible<String> : std::true_type {};
+
+template <size_t N>
+class StaticString : public StaticCowData<char32_t, N> {
+public:
+	using StaticCowData<char32_t, N>::StaticCowData;
+	static_assert(N > 1, "For empty static strings, use String() or \"\" instead.");
+
+	operator String() const volatile { return String(this->operator CowData<char32_t>()); }
+};
+
+/// Creates a String that lives in the binary, and is never deallocated.
+/// The StaticString is evaluated at compile time.
+/// The String is evaluated at first run. Henceforth, a reference to the string can be returned for free.
+#define SString(t_s)  ([]() -> const String & { static const StaticString sstring = StaticString<std::size(t_s)>(t_s); static String string = sstring.operator String(); return string; })()
 
 bool operator==(const char *p_chr, const String &p_str);
 bool operator==(const wchar_t *p_chr, const String &p_str);

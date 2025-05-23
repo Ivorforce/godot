@@ -4611,6 +4611,20 @@ int Main::start() {
 	OS::get_singleton()->benchmark_end_measure("Startup", "Main::Start");
 	OS::get_singleton()->benchmark_dump();
 
+	static String test = ([]() -> const String & {
+		static const volatile StaticString sstring = StaticString<std::size(U"This is a test.")>(U"This is a test.");
+		(void)&sstring;
+		static String string = sstring.operator String();
+		return string;
+	})();
+	String s;
+	{
+		String s1 = test;
+		s = s1;
+	}
+	print_line(s);
+	print_line(test);
+
 	return EXIT_SUCCESS;
 }
 

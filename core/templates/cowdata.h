@@ -440,6 +440,31 @@ CowData<T>::CowData(std::initializer_list<T> p_init) {
 	}
 }
 
+template <typename T, size_t N>
+class StaticCowData {
+public:
+	using USize = typename CowData<T>::USize;
+private:
+	SafeNumeric<USize> _refcount = SafeNumeric<USize>(1);
+	USize _size = N;
+	// Normally we'd need a power-of-2 capacity,
+	// but since nobody is allowed to modify us, tight size is fine.
+	alignas(max_align_t) T _data[N];
+public:
+	/// TODO This should be consteval so it can only be used at compile time.
+	explicit constexpr StaticCowData(const T (&p_data)[N]) {
+		static_assert(std::is_trivially_copyable_v<T>);
+		for (size_t i = 0; i < N; ++i) {
+			_data[i] = p_data[i];
+		}
+	}
+
+	/// This needs to not be constexpr so that our own life is guaranteed.
+	_FORCE_INLINE_ operator CowData<T>() const volatile {
+		return CowData<T>(*static_cast<const CowData<T> *>(static_cast<const void *>(const_cast<const char32_t *>(_data))));
+	}
+};
+
 GODOT_GCC_WARNING_POP
 
 // Zero-constructing CowData initializes _ptr to nullptr (and thus empty).
