@@ -99,7 +99,7 @@ private:
 	uint32_t capacity = 0;
 	uint32_t num_elements = 0;
 
-	uint32_t _hash(const TKey &p_key) const {
+	static uint32_t _hash(const TKey &p_key) {
 		uint32_t hash = Hasher::hash(p_key);
 
 		if (unlikely(hash == EMPTY_HASH)) {
@@ -166,20 +166,20 @@ private:
 		}
 	}
 
-	uint32_t _insert_with_hash(uint32_t p_hash, uint32_t p_index) {
+	void _insert_with_hash(uint32_t p_hash, uint32_t &p_index, uint32_t p_key) {
 		uint32_t pos = p_hash & capacity;
 
+		HashMapData c_data;
+		c_data.hash = p_hash;
+		c_data.hash_to_key = p_key;
+
 		if (map_data[pos].data == EMPTY_HASH) {
-			uint64_t data = ((uint64_t)p_index << 32) | p_hash;
-			map_data[pos].data = data;
-			return pos;
+			map_data[pos] = c_data;
+			return;
 		}
 
 		uint32_t distance = 1;
 		pos = (pos + 1) & capacity;
-		HashMapData c_data;
-		c_data.hash = p_hash;
-		c_data.hash_to_key = p_index;
 
 		while (true) {
 			if (map_data[pos].data == EMPTY_HASH) {
@@ -190,7 +190,11 @@ private:
 				}
 #endif
 				map_data[pos] = c_data;
-				return pos;
+
+				if (c_data.hash_to_key == p_key) {
+					p_index = pos;
+				}
+				return;
 			}
 
 			// Not an empty slot, let's check the probing length of the existing one.
@@ -198,6 +202,10 @@ private:
 			if (existing_probe_len < distance) {
 				SWAP(c_data, map_data[pos]);
 				distance = existing_probe_len;
+
+				if (c_data.hash_to_key == p_key) {
+					p_index = pos;
+				}
 			}
 
 			pos = (pos + 1) & capacity;
@@ -229,7 +237,7 @@ private:
 		Memory::free_static(old_map_data);
 	}
 
-	int32_t _insert_element(const TKey &p_key, const TValue &p_value, uint32_t p_hash) {
+	uint32_t _insert_element(const TKey &p_key, const TValue &p_value, uint32_t p_hash) {
 		if (unlikely(elements == nullptr)) {
 			// Allocate on demand to save memory.
 
@@ -244,9 +252,8 @@ private:
 
 		memnew_placement(&elements[num_elements], MapKeyValue(p_key, p_value));
 
-		_insert_with_hash(p_hash, num_elements);
 		num_elements++;
-		return num_elements - 1;
+		return _insert_with_hash(p_hash, num_elements - 1);
 	}
 
 	void _init_from(const AHashMap &p_other) {
@@ -299,130 +306,6 @@ public:
 
 		num_elements = 0;
 	}
-
-	TValue &get(const TKey &p_key) {
-		uint32_t pos = 0;
-		uint32_t hash_pos = 0;
-		bool exists = _lookup_pos(p_key, pos, hash_pos);
-		CRASH_COND_MSG(!exists, "AHashMap key not found.");
-		return elements[pos].value;
-	}
-
-	const TValue &get(const TKey &p_key) const {
-		uint32_t pos = 0;
-		uint32_t hash_pos = 0;
-		bool exists = _lookup_pos(p_key, pos, hash_pos);
-		CRASH_COND_MSG(!exists, "AHashMap key not found.");
-		return elements[pos].value;
-	}
-
-	const TValue *getptr(const TKey &p_key) const {
-		uint32_t pos = 0;
-		uint32_t hash_pos = 0;
-		bool exists = _lookup_pos(p_key, pos, hash_pos);
-
-		if (exists) {
-			return &elements[pos].value;
-		}
-		return nullptr;
-	}
-
-	TValue *getptr(const TKey &p_key) {
-		uint32_t pos = 0;
-		uint32_t hash_pos = 0;
-		bool exists = _lookup_pos(p_key, pos, hash_pos);
-
-		if (exists) {
-			return &elements[pos].value;
-		}
-		return nullptr;
-	}
-
-	bool has(const TKey &p_key) const {
-		uint32_t _pos = 0;
-		uint32_t h_pos = 0;
-		return _lookup_pos(p_key, _pos, h_pos);
-	}
-
-	bool erase(const TKey &p_key) {
-		uint32_t pos = 0;
-		uint32_t element_pos = 0;
-		bool exists = _lookup_pos(p_key, element_pos, pos);
-
-		if (!exists) {
-			return false;
-		}
-
-		uint32_t next_pos = (pos + 1) & capacity;
-		while (map_data[next_pos].hash != EMPTY_HASH && _get_probe_length(next_pos, map_data[next_pos].hash, capacity) != 0) {
-			SWAP(map_data[next_pos], map_data[pos]);
-
-			pos = next_pos;
-			next_pos = (next_pos + 1) & capacity;
-		}
-
-		map_data[pos].data = EMPTY_HASH;
-		elements[element_pos].key.~TKey();
-		elements[element_pos].value.~TValue();
-		num_elements--;
-
-		if (element_pos < num_elements) {
-			void *destination = &elements[element_pos];
-			const void *source = &elements[num_elements];
-			memcpy(destination, source, sizeof(MapKeyValue));
-			uint32_t h_pos = 0;
-			_lookup_pos(elements[num_elements].key, pos, h_pos);
-			map_data[h_pos].hash_to_key = element_pos;
-		}
-
-		return true;
-	}
-
-	// Replace the key of an entry in-place, without invalidating iterators or changing the entries position during iteration.
-	// p_old_key must exist in the map and p_new_key must not, unless it is equal to p_old_key.
-	bool replace_key(const TKey &p_old_key, const TKey &p_new_key) {
-		if (p_old_key == p_new_key) {
-			return true;
-		}
-		uint32_t pos = 0;
-		uint32_t element_pos = 0;
-		ERR_FAIL_COND_V(_lookup_pos(p_new_key, element_pos, pos), false);
-		ERR_FAIL_COND_V(!_lookup_pos(p_old_key, element_pos, pos), false);
-		MapKeyValue &element = elements[element_pos];
-		const_cast<TKey &>(element.key) = p_new_key;
-
-		uint32_t next_pos = (pos + 1) & capacity;
-		while (map_data[next_pos].hash != EMPTY_HASH && _get_probe_length(next_pos, map_data[next_pos].hash, capacity) != 0) {
-			SWAP(map_data[next_pos], map_data[pos]);
-
-			pos = next_pos;
-			next_pos = (next_pos + 1) & capacity;
-		}
-
-		map_data[pos].data = EMPTY_HASH;
-
-		uint32_t hash = _hash(p_new_key);
-		_insert_with_hash(hash, element_pos);
-
-		return true;
-	}
-
-	// Reserves space for a number of elements, useful to avoid many resizes and rehashes.
-	// If adding a known (possibly large) number of elements at once, must be larger than old capacity.
-	void reserve(uint32_t p_new_capacity) {
-		ERR_FAIL_COND_MSG(p_new_capacity < size(), "reserve() called with a capacity smaller than the current size. This is likely a mistake.");
-		if (elements == nullptr) {
-			capacity = MAX(4u, p_new_capacity);
-			capacity = next_power_of_2(capacity) - 1;
-			return; // Unallocated yet.
-		}
-		if (p_new_capacity <= get_capacity()) {
-			return;
-		}
-		_resize_and_rehash(p_new_capacity);
-	}
-
-	/** Iterator API **/
 
 	struct ConstIterator {
 		_FORCE_INLINE_ const MapKeyValue &operator*() const {
@@ -527,6 +410,186 @@ public:
 		MapKeyValue *end = nullptr;
 	};
 
+	class ConstEntry {
+		friend class AHashMap;
+
+	protected:
+		AHashMap &_hash_map;
+		const TKey &_key;
+		mutable bool _exists;
+		mutable uint32_t _hash;
+		mutable uint32_t _index;
+
+		void _ensure_hash() {
+			if (_hash == EMPTY_HASH) {
+				_hash = AHashMap::_hash(_key);
+			}
+		}
+
+		void _ensure_position() {
+			if (_index == UINT32_MAX && !_hash_map.is_empty()) {
+				_ensure_hash();
+				uint32_t dummy;
+				_exists = _hash_map._lookup_pos_with_hash(_key, dummy, _index, _hash);
+			}
+		}
+
+		ConstEntry(const AHashMap &p_hash_map, const TKey &p_key) :
+				_hash_map((AHashMap &)p_hash_map), _key(p_key) {
+			if (!_hash_map.is_empty()) {
+				_hash = AHashMap::_hash(_key);
+				uint32_t dummy;
+				_exists = _hash_map._lookup_pos_with_hash(_key, dummy, _index, _hash);
+			} else {
+				_exists = false;
+				_hash = EMPTY_HASH;
+				_index = UINT32_MAX;
+			}
+		}
+
+	public:
+		bool exists() const { return _exists; }
+		const TValue &value() const {
+			CRASH_COND_MSG(!_exists, "AHashMap key not found.");
+			return _hash_map.elements[_index].value;
+		}
+		const TValue *ptr() const { return _exists ? &_hash_map.elements[_hash_map.map_data[_index].hash_to_key].value : nullptr; }
+		ConstIterator iter() const { return ConstIterator(_exists ? &_hash_map.elements[_hash_map.map_data[_index].hash_to_key] : nullptr, _hash_map.elements, _hash_map.elements + _hash_map.num_elements); }
+	};
+
+	class Entry : public ConstEntry {
+		friend class AHashMap;
+
+		using ConstEntry::ConstEntry;
+
+		using ConstEntry::_exists;
+		using ConstEntry::_hash;
+		using ConstEntry::_hash_map;
+		using ConstEntry::_index;
+		using ConstEntry::_key;
+
+	public:
+		TValue &value() {
+			ConstEntry::_ensure_position();
+			CRASH_COND_MSG(!_exists, "AHashMap key not found.");
+			return _hash_map.elements[_hash_map.map_data[_index].hash_to_key].value;
+		}
+		TValue *ptr() { return _exists ? &_hash_map.elements[_hash_map.map_data[_index].hash_to_key].value : nullptr; }
+		Iterator iter() { return Iterator(_exists ? &_hash_map.elements[_hash_map.map_data[_index].hash_to_key] : nullptr, _hash_map.elements, _hash_map.elements + _hash_map.num_elements); }
+
+		void insert(const TValue &p_value) {
+			if (!_exists) {
+				ConstEntry::_ensure_hash();
+				_index = _hash_map._insert_element(_key, p_value, _hash);
+				_exists = true;
+			} else {
+				_hash_map.elements[_hash_map.map_data[_index].hash_to_key].value = p_value;
+			}
+		}
+
+		void operator=(const TValue &p_value) { insert(p_value); }
+	};
+
+	ConstEntry entry(const TKey &p_key) const { return ConstEntry(*this, p_key); }
+	Entry entry(const TKey &p_key) { return Entry(*this, p_key); }
+
+	const TValue &operator[](const TKey &p_key) const { return entry(p_key).value(); }
+	TValue &operator[](const TKey &p_key) {
+		Entry entry = this->entry(p_key);
+		if (!entry.exists()) {
+			entry.insert(TValue());
+		}
+		return entry.value();
+	}
+
+	const TValue &get(const TKey &p_key) const { return entry(p_key).value(); }
+	TValue &get(const TKey &p_key) { return entry(p_key).value(); }
+
+	const TValue *getptr(const TKey &p_key) const { return entry(p_key).ptr(); }
+	TValue *getptr(const TKey &p_key) { return entry(p_key).ptr(); }
+
+	_FORCE_INLINE_ bool has(const TKey &p_key) const { return entry(p_key).exists(); }
+
+	bool erase(const TKey &p_key) {
+		uint32_t pos = 0;
+		uint32_t element_pos = 0;
+		bool exists = _lookup_pos(p_key, element_pos, pos);
+
+		if (!exists) {
+			return false;
+		}
+
+		uint32_t next_pos = (pos + 1) & capacity;
+		while (map_data[next_pos].hash != EMPTY_HASH && _get_probe_length(next_pos, map_data[next_pos].hash, capacity) != 0) {
+			SWAP(map_data[next_pos], map_data[pos]);
+
+			pos = next_pos;
+			next_pos = (next_pos + 1) & capacity;
+		}
+
+		map_data[pos].data = EMPTY_HASH;
+		elements[element_pos].key.~TKey();
+		elements[element_pos].value.~TValue();
+		num_elements--;
+
+		if (element_pos < num_elements) {
+			void *destination = &elements[element_pos];
+			const void *source = &elements[num_elements];
+			memcpy(destination, source, sizeof(MapKeyValue));
+			uint32_t h_pos = 0;
+			_lookup_pos(elements[num_elements].key, pos, h_pos);
+			map_data[h_pos].hash_to_key = element_pos;
+		}
+
+		return true;
+	}
+
+	// Replace the key of an entry in-place, without invalidating iterators or changing the entries position during iteration.
+	// p_old_key must exist in the map and p_new_key must not, unless it is equal to p_old_key.
+	bool replace_key(const TKey &p_old_key, const TKey &p_new_key) {
+		if (p_old_key == p_new_key) {
+			return true;
+		}
+		uint32_t pos = 0;
+		uint32_t element_pos = 0;
+		ERR_FAIL_COND_V(_lookup_pos(p_new_key, element_pos, pos), false);
+		ERR_FAIL_COND_V(!_lookup_pos(p_old_key, element_pos, pos), false);
+		MapKeyValue &element = elements[element_pos];
+		const_cast<TKey &>(element.key) = p_new_key;
+
+		uint32_t next_pos = (pos + 1) & capacity;
+		while (map_data[next_pos].hash != EMPTY_HASH && _get_probe_length(next_pos, map_data[next_pos].hash, capacity) != 0) {
+			SWAP(map_data[next_pos], map_data[pos]);
+
+			pos = next_pos;
+			next_pos = (next_pos + 1) & capacity;
+		}
+
+		map_data[pos].data = EMPTY_HASH;
+
+		uint32_t hash = _hash(p_new_key);
+		_insert_with_hash(hash, element_pos);
+
+		return true;
+	}
+
+	// Reserves space for a number of elements, useful to avoid many resizes and rehashes.
+	// If adding a known (possibly large) number of elements at once, must be larger than old capacity.
+	void reserve(uint32_t p_new_capacity) {
+		ERR_FAIL_COND_MSG(p_new_capacity < size(), "reserve() called with a capacity smaller than the current size. This is likely a mistake.");
+		if (elements == nullptr) {
+			capacity = MAX(4u, p_new_capacity);
+			capacity = next_power_of_2(capacity) - 1;
+			return; // Unallocated yet.
+		}
+		if (p_new_capacity <= get_capacity()) {
+			return;
+		}
+		_resize_and_rehash(p_new_capacity);
+	}
+
+	/** Iterator API **/
+
 	_FORCE_INLINE_ Iterator begin() {
 		return Iterator(elements, elements, elements + num_elements);
 	}
@@ -540,15 +603,8 @@ public:
 		return Iterator(elements + num_elements - 1, elements, elements + num_elements);
 	}
 
-	Iterator find(const TKey &p_key) {
-		uint32_t pos = 0;
-		uint32_t h_pos = 0;
-		bool exists = _lookup_pos(p_key, pos, h_pos);
-		if (!exists) {
-			return end();
-		}
-		return Iterator(elements + pos, elements, elements + num_elements);
-	}
+	_FORCE_INLINE_ Iterator find(const TKey &p_key) { return entry(p_key).iter(); }
+	_FORCE_INLINE_ ConstIterator find(const TKey &p_key) const { return entry(p_key).iter(); }
 
 	void remove(const Iterator &p_iter) {
 		if (p_iter) {
@@ -569,54 +625,12 @@ public:
 		return ConstIterator(elements + num_elements - 1, elements, elements + num_elements);
 	}
 
-	ConstIterator find(const TKey &p_key) const {
-		uint32_t pos = 0;
-		uint32_t h_pos = 0;
-		bool exists = _lookup_pos(p_key, pos, h_pos);
-		if (!exists) {
-			return end();
-		}
-		return ConstIterator(elements + pos, elements, elements + num_elements);
-	}
-
-	/* Indexing */
-
-	const TValue &operator[](const TKey &p_key) const {
-		uint32_t pos = 0;
-		uint32_t h_pos = 0;
-		bool exists = _lookup_pos(p_key, pos, h_pos);
-		CRASH_COND(!exists);
-		return elements[pos].value;
-	}
-
-	TValue &operator[](const TKey &p_key) {
-		uint32_t pos = 0;
-		uint32_t h_pos = 0;
-		uint32_t hash = _hash(p_key);
-		bool exists = _lookup_pos_with_hash(p_key, pos, h_pos, hash);
-
-		if (exists) {
-			return elements[pos].value;
-		} else {
-			pos = _insert_element(p_key, TValue(), hash);
-			return elements[pos].value;
-		}
-	}
-
 	/* Insert */
 
 	Iterator insert(const TKey &p_key, const TValue &p_value) {
-		uint32_t pos = 0;
-		uint32_t h_pos = 0;
-		uint32_t hash = _hash(p_key);
-		bool exists = _lookup_pos_with_hash(p_key, pos, h_pos, hash);
-
-		if (!exists) {
-			pos = _insert_element(p_key, p_value, hash);
-		} else {
-			elements[pos].value = p_value;
-		}
-		return Iterator(elements + pos, elements, elements + num_elements);
+		Entry entry = this->entry(p_key);
+		entry.insert(p_value);
+		return entry.iter();
 	}
 
 	// Inserts an element without checking if it already exists.
