@@ -33,14 +33,34 @@
 
 #include "thread_safe.h"
 
-static thread_local bool current_thread_safe_for_nodes = false;
+#include "core/string/print_string.h"
+
+#include <thread>
+
+inline std::thread::id current_node_thread{};
 
 bool is_current_thread_safe_for_nodes() {
-	return current_thread_safe_for_nodes;
+	return std::this_thread::get_id() == current_node_thread;
 }
 
 void set_current_thread_safe_for_nodes(bool p_safe) {
-	current_thread_safe_for_nodes = p_safe;
+	const std::thread::id thread_id = std::this_thread::get_id();
+
+	if (p_safe) {
+		if (current_node_thread == thread_id) {
+			return; // Nothing to do.
+		}
+
+		if (current_node_thread != std::thread::id{}) {
+			print_error("Updating the main node thread when another was already registered.");
+		}
+
+		current_node_thread = thread_id;
+	}
+	else if (current_node_thread == thread_id) {
+		// Reset the ID.
+		current_node_thread = std::thread::id{};
+	}
 }
 
 #endif // THREAD_SAFE_CPP
