@@ -30,6 +30,8 @@
 
 #include "node_3d.h"
 
+STATIC_ASSERT_INCOMPLETE_CLASS(Node2D);
+
 #include "core/math/transform_interpolator.h"
 #include "scene/3d/visual_instance_3d.h"
 #include "scene/main/viewport.h"

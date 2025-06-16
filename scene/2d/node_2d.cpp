@@ -30,6 +30,8 @@
 
 #include "node_2d.h"
 
+STATIC_ASSERT_INCOMPLETE_CLASS(Node3D);
+
 #include "scene/main/viewport.h"
 
 #ifdef TOOLS_ENABLED
