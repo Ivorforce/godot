@@ -102,9 +102,8 @@ TextureStorage::TextureStorage() {
 		}
 
 		{
-			Vector<Vector<uint8_t>> vpv;
-			vpv.push_back(pv);
-			default_rd_textures[DEFAULT_RD_TEXTURE_WHITE] = RD::get_singleton()->texture_create(tformat, RD::TextureView(), vpv);
+			Span<uint8_t> pv_span = pv.span();
+			default_rd_textures[DEFAULT_RD_TEXTURE_WHITE] = RD::get_singleton()->texture_create(tformat, RD::TextureView(), Span(&pv_span, 1));
 		}
 
 		for (int i = 0; i < 16; i++) {
@@ -116,9 +115,8 @@ TextureStorage::TextureStorage() {
 		}
 
 		{
-			Vector<Vector<uint8_t>> vpv;
-			vpv.push_back(pv);
-			default_rd_textures[DEFAULT_RD_TEXTURE_BLACK] = RD::get_singleton()->texture_create(tformat, RD::TextureView(), vpv);
+			Span<uint8_t> pv_span = pv.span();
+			default_rd_textures[DEFAULT_RD_TEXTURE_BLACK] = RD::get_singleton()->texture_create(tformat, RD::TextureView(), Span(&pv_span, 1));
 		}
 
 		for (int i = 0; i < 16; i++) {
@@ -130,9 +128,8 @@ TextureStorage::TextureStorage() {
 		}
 
 		{
-			Vector<Vector<uint8_t>> vpv;
-			vpv.push_back(pv);
-			default_rd_textures[DEFAULT_RD_TEXTURE_TRANSPARENT] = RD::get_singleton()->texture_create(tformat, RD::TextureView(), vpv);
+			Span<uint8_t> pv_span = pv.span();
+			default_rd_textures[DEFAULT_RD_TEXTURE_TRANSPARENT] = RD::get_singleton()->texture_create(tformat, RD::TextureView(), Span(&pv_span, 1));
 		}
 
 		for (int i = 0; i < 16; i++) {
@@ -144,9 +141,8 @@ TextureStorage::TextureStorage() {
 		}
 
 		{
-			Vector<Vector<uint8_t>> vpv;
-			vpv.push_back(pv);
-			default_rd_textures[DEFAULT_RD_TEXTURE_NORMAL] = RD::get_singleton()->texture_create(tformat, RD::TextureView(), vpv);
+			Span<uint8_t> pv_span = pv.span();
+			default_rd_textures[DEFAULT_RD_TEXTURE_NORMAL] = RD::get_singleton()->texture_create(tformat, RD::TextureView(), Span(&pv_span, 1));
 		}
 
 		for (int i = 0; i < 16; i++) {
@@ -158,9 +154,8 @@ TextureStorage::TextureStorage() {
 		}
 
 		{
-			Vector<Vector<uint8_t>> vpv;
-			vpv.push_back(pv);
-			default_rd_textures[DEFAULT_RD_TEXTURE_ANISO] = RD::get_singleton()->texture_create(tformat, RD::TextureView(), vpv);
+			Span<uint8_t> pv_span = pv.span();
+			default_rd_textures[DEFAULT_RD_TEXTURE_ANISO] = RD::get_singleton()->texture_create(tformat, RD::TextureView(), Span(&pv_span, 1));
 		}
 
 		{
@@ -189,9 +184,8 @@ TextureStorage::TextureStorage() {
 		//memset(pv.ptrw(), 0, 16 * 4);
 		{
 			tformat.format = RD::DATA_FORMAT_R8G8B8A8_UINT;
-			Vector<Vector<uint8_t>> vpv;
-			vpv.push_back(pv);
-			default_rd_textures[DEFAULT_RD_TEXTURE_2D_UINT] = RD::get_singleton()->texture_create(tformat, RD::TextureView(), vpv);
+			Span<uint8_t> pv_span = pv.span();
+			default_rd_textures[DEFAULT_RD_TEXTURE_2D_UINT] = RD::get_singleton()->texture_create(tformat, RD::TextureView(), Span(&pv_span, 1));
 		}
 	}
 
@@ -215,11 +209,8 @@ TextureStorage::TextureStorage() {
 		}
 
 		{
-			Vector<Vector<uint8_t>> vpv;
-			for (int i = 0; i < 6; i++) {
-				vpv.push_back(pv);
-			}
-			default_rd_textures[DEFAULT_RD_TEXTURE_CUBEMAP_ARRAY_BLACK] = RD::get_singleton()->texture_create(tformat, RD::TextureView(), vpv);
+			Span<uint8_t> pv_spans[6] = {pv.span(), pv.span(), pv.span(), pv.span(), pv.span(), pv.span()};
+			default_rd_textures[DEFAULT_RD_TEXTURE_CUBEMAP_ARRAY_BLACK] = RD::get_singleton()->texture_create(tformat, RD::TextureView(), pv_spans);
 		}
 	}
 
@@ -243,11 +234,8 @@ TextureStorage::TextureStorage() {
 		}
 
 		{
-			Vector<Vector<uint8_t>> vpv;
-			for (int i = 0; i < 6; i++) {
-				vpv.push_back(pv);
-			}
-			default_rd_textures[DEFAULT_RD_TEXTURE_CUBEMAP_ARRAY_WHITE] = RD::get_singleton()->texture_create(tformat, RD::TextureView(), vpv);
+			Span<uint8_t> pv_spans[6] = {pv.span(), pv.span(), pv.span(), pv.span(), pv.span(), pv.span()};
+			default_rd_textures[DEFAULT_RD_TEXTURE_CUBEMAP_ARRAY_WHITE] = RD::get_singleton()->texture_create(tformat, RD::TextureView(), pv_spans);
 		}
 	}
 
@@ -271,11 +259,8 @@ TextureStorage::TextureStorage() {
 		}
 
 		{
-			Vector<Vector<uint8_t>> vpv;
-			for (int i = 0; i < 6; i++) {
-				vpv.push_back(pv);
-			}
-			default_rd_textures[DEFAULT_RD_TEXTURE_CUBEMAP_BLACK] = RD::get_singleton()->texture_create(tformat, RD::TextureView(), vpv);
+			Span<uint8_t> pv_spans[6] = {pv.span(), pv.span(), pv.span(), pv.span(), pv.span(), pv.span()};
+			default_rd_textures[DEFAULT_RD_TEXTURE_CUBEMAP_BLACK] = RD::get_singleton()->texture_create(tformat, RD::TextureView(), pv_spans);
 		}
 	}
 
@@ -299,11 +284,8 @@ TextureStorage::TextureStorage() {
 		}
 
 		{
-			Vector<Vector<uint8_t>> vpv;
-			for (int i = 0; i < 6; i++) {
-				vpv.push_back(pv);
-			}
-			default_rd_textures[DEFAULT_RD_TEXTURE_CUBEMAP_WHITE] = RD::get_singleton()->texture_create(tformat, RD::TextureView(), vpv);
+			Span<uint8_t> pv_spans[6] = {pv.span(), pv.span(), pv.span(), pv.span(), pv.span(), pv.span()};
+			default_rd_textures[DEFAULT_RD_TEXTURE_CUBEMAP_WHITE] = RD::get_singleton()->texture_create(tformat, RD::TextureView(), pv_spans);
 		}
 	}
 
@@ -327,9 +309,8 @@ TextureStorage::TextureStorage() {
 		}
 
 		{
-			Vector<Vector<uint8_t>> vpv;
-			vpv.push_back(pv);
-			default_rd_textures[DEFAULT_RD_TEXTURE_3D_BLACK] = RD::get_singleton()->texture_create(tformat, RD::TextureView(), vpv);
+			Span<uint8_t> pv_span = pv.span();
+			default_rd_textures[DEFAULT_RD_TEXTURE_3D_BLACK] = RD::get_singleton()->texture_create(tformat, RD::TextureView(), Span(&pv_span, 1));
 		}
 		for (int i = 0; i < 64; i++) {
 			pv.set(i * 4 + 0, 255);
@@ -339,9 +320,8 @@ TextureStorage::TextureStorage() {
 		}
 
 		{
-			Vector<Vector<uint8_t>> vpv;
-			vpv.push_back(pv);
-			default_rd_textures[DEFAULT_RD_TEXTURE_3D_WHITE] = RD::get_singleton()->texture_create(tformat, RD::TextureView(), vpv);
+			Span<uint8_t> pv_span = pv.span();
+			default_rd_textures[DEFAULT_RD_TEXTURE_3D_WHITE] = RD::get_singleton()->texture_create(tformat, RD::TextureView(), Span(&pv_span, 1));
 		}
 	}
 
@@ -365,9 +345,8 @@ TextureStorage::TextureStorage() {
 		}
 
 		{
-			Vector<Vector<uint8_t>> vpv;
-			vpv.push_back(pv);
-			default_rd_textures[DEFAULT_RD_TEXTURE_2D_ARRAY_WHITE] = RD::get_singleton()->texture_create(tformat, RD::TextureView(), vpv);
+			Span<uint8_t> pv_span = pv.span();
+			default_rd_textures[DEFAULT_RD_TEXTURE_2D_ARRAY_WHITE] = RD::get_singleton()->texture_create(tformat, RD::TextureView(), Span(&pv_span, 1));
 		}
 	}
 
@@ -391,9 +370,8 @@ TextureStorage::TextureStorage() {
 		}
 
 		{
-			Vector<Vector<uint8_t>> vpv;
-			vpv.push_back(pv);
-			default_rd_textures[DEFAULT_RD_TEXTURE_2D_ARRAY_BLACK] = RD::get_singleton()->texture_create(tformat, RD::TextureView(), vpv);
+			Span<uint8_t> pv_span = pv.span();
+			default_rd_textures[DEFAULT_RD_TEXTURE_2D_ARRAY_BLACK] = RD::get_singleton()->texture_create(tformat, RD::TextureView(), Span(&pv_span, 1));
 		}
 	}
 
@@ -417,9 +395,8 @@ TextureStorage::TextureStorage() {
 		}
 
 		{
-			Vector<Vector<uint8_t>> vpv;
-			vpv.push_back(pv);
-			default_rd_textures[DEFAULT_RD_TEXTURE_2D_ARRAY_NORMAL] = RD::get_singleton()->texture_create(tformat, RD::TextureView(), vpv);
+			Span<uint8_t> pv_span = pv.span();
+			default_rd_textures[DEFAULT_RD_TEXTURE_2D_ARRAY_NORMAL] = RD::get_singleton()->texture_create(tformat, RD::TextureView(), Span(&pv_span, 1));
 		}
 	}
 
@@ -464,9 +441,8 @@ TextureStorage::TextureStorage() {
 		}
 
 		{
-			Vector<Vector<uint8_t>> vpv;
-			vpv.push_back(pv);
-			decal_atlas.texture = RD::get_singleton()->texture_create(tformat, RD::TextureView(), vpv);
+			Span<uint8_t> pv_span = pv.span();
+			decal_atlas.texture = RD::get_singleton()->texture_create(tformat, RD::TextureView(), Span(&pv_span, 1));
 			decal_atlas.texture_srgb = decal_atlas.texture;
 		}
 	}
@@ -488,9 +464,8 @@ TextureStorage::TextureStorage() {
 		}
 
 		{
-			Vector<Vector<uint8_t>> vpv;
-			vpv.push_back(pv);
-			default_rd_textures[DEFAULT_RD_TEXTURE_VRS] = RD::get_singleton()->texture_create(tformat, RD::TextureView(), vpv);
+			Span<uint8_t> pv_span = pv.span();
+			default_rd_textures[DEFAULT_RD_TEXTURE_VRS] = RD::get_singleton()->texture_create(tformat, RD::TextureView(), Span(&pv_span, 1));
 		}
 	}
 
@@ -817,9 +792,8 @@ void TextureStorage::texture_2d_initialize(RID p_texture, const Ref<Image> &p_im
 		rd_view.swizzle_a = ret_format.swizzle_a;
 	}
 	Vector<uint8_t> data = image->get_data(); //use image data
-	Vector<Vector<uint8_t>> data_slices;
-	data_slices.push_back(data);
-	texture.rd_texture = RD::get_singleton()->texture_create(rd_format, rd_view, data_slices);
+	Span<uint8_t> data_span = data.span();
+	texture.rd_texture = RD::get_singleton()->texture_create(rd_format, rd_view, Span(&data_span, 1));
 	ERR_FAIL_COND(texture.rd_texture.is_null());
 	if (texture.rd_format_srgb != RD::DATA_FORMAT_MAX) {
 		rd_view.format_override = texture.rd_format_srgb;
@@ -926,10 +900,9 @@ void TextureStorage::texture_2d_layered_initialize(RID p_texture, const Vector<R
 		rd_view.swizzle_b = ret_format.swizzle_b;
 		rd_view.swizzle_a = ret_format.swizzle_a;
 	}
-	Vector<Vector<uint8_t>> data_slices;
+	LocalVector<Span<uint8_t>> data_slices;
 	for (int i = 0; i < images.size(); i++) {
-		Vector<uint8_t> data = images[i]->get_data(); //use image data
-		data_slices.push_back(data);
+		data_slices.push_back(images[i]->get_data());
 	}
 	texture.rd_texture = RD::get_singleton()->texture_create(rd_format, rd_view, data_slices);
 	ERR_FAIL_COND(texture.rd_texture.is_null());
@@ -1045,10 +1018,8 @@ void TextureStorage::texture_3d_initialize(RID p_texture, Image::Format p_format
 		rd_view.swizzle_b = ret_format.swizzle_b;
 		rd_view.swizzle_a = ret_format.swizzle_a;
 	}
-	Vector<Vector<uint8_t>> data_slices;
-	data_slices.push_back(all_data); //one slice
-
-	texture.rd_texture = RD::get_singleton()->texture_create(rd_format, rd_view, data_slices);
+	Span<uint8_t> all_data_span = all_data.span();
+	texture.rd_texture = RD::get_singleton()->texture_create(rd_format, rd_view, Span(&all_data_span, 1));
 	ERR_FAIL_COND(texture.rd_texture.is_null());
 	if (texture.rd_format_srgb != RD::DATA_FORMAT_MAX) {
 		rd_view.format_override = texture.rd_format_srgb;
@@ -3885,12 +3856,11 @@ RID TextureStorage::render_target_get_sdf_texture(RID p_render_target) {
 		tformat.usage_bits = RD::TEXTURE_USAGE_SAMPLING_BIT;
 		tformat.texture_type = RD::TEXTURE_TYPE_2D;
 
-		Vector<uint8_t> pv;
+		LocalVector<uint8_t> pv;
 		pv.resize(16 * 4);
-		memset(pv.ptrw(), 0, 16 * 4);
-		Vector<Vector<uint8_t>> vpv;
-
-		rt->sdf_buffer_read = RD::get_singleton()->texture_create(tformat, RD::TextureView(), vpv);
+		memset(pv.ptr(), 0, 16 * 4);
+		Span<uint8_t> pv_span = pv.span();
+		rt->sdf_buffer_read = RD::get_singleton()->texture_create(tformat, RD::TextureView(), Span(&pv_span, 1));
 	}
 
 	return rt->sdf_buffer_read;

@@ -219,12 +219,14 @@ static FfxErrorCode create_resource_rd(FfxFsr2Interface *p_backend_interface, co
 		res_desc.mipCount = uint32_t(1 + std::floor(std::log2(MAX(MAX(res_desc.width, res_desc.height), res_desc.depth))));
 	}
 
-	Vector<PackedByteArray> initial_data;
+	LocalVector<uint8_t> init_vector;
+	Span<uint8_t> init_vector_span;
+	Span<Span<uint8_t>> initial_data;
 	if (p_create_resource_description->initDataSize) {
-		PackedByteArray byte_array;
-		byte_array.resize(p_create_resource_description->initDataSize);
-		memcpy(byte_array.ptrw(), p_create_resource_description->initData, p_create_resource_description->initDataSize);
-		initial_data.push_back(byte_array);
+		init_vector.resize(p_create_resource_description->initDataSize);
+		memcpy(init_vector.ptr(), p_create_resource_description->initData, p_create_resource_description->initDataSize);
+		init_vector_span = init_vector.span();
+		initial_data = Span(&init_vector_span, 1);
 	}
 
 	RD::TextureFormat texture_format;
