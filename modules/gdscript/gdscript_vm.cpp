@@ -209,44 +209,44 @@ String GDScriptFunction::_get_callable_call_error(const String &p_where, const C
 
 void (*type_init_function_table[])(Variant *) = {
 	nullptr, // NIL (shouldn't be called).
-	&VariantInitializer<bool>::init, // BOOL.
-	&VariantInitializer<int64_t>::init, // INT.
-	&VariantInitializer<double>::init, // FLOAT.
-	&VariantInitializer<String>::init, // STRING.
-	&VariantInitializer<Vector2>::init, // VECTOR2.
-	&VariantInitializer<Vector2i>::init, // VECTOR2I.
-	&VariantInitializer<Rect2>::init, // RECT2.
-	&VariantInitializer<Rect2i>::init, // RECT2I.
-	&VariantInitializer<Vector3>::init, // VECTOR3.
-	&VariantInitializer<Vector3i>::init, // VECTOR3I.
-	&VariantInitializer<Transform2D>::init, // TRANSFORM2D.
-	&VariantInitializer<Vector4>::init, // VECTOR4.
-	&VariantInitializer<Vector4i>::init, // VECTOR4I.
-	&VariantInitializer<Plane>::init, // PLANE.
-	&VariantInitializer<Quaternion>::init, // QUATERNION.
-	&VariantInitializer<AABB>::init, // AABB.
-	&VariantInitializer<Basis>::init, // BASIS.
-	&VariantInitializer<Transform3D>::init, // TRANSFORM3D.
-	&VariantInitializer<Projection>::init, // PROJECTION.
-	&VariantInitializer<Color>::init, // COLOR.
-	&VariantInitializer<StringName>::init, // STRING_NAME.
-	&VariantInitializer<NodePath>::init, // NODE_PATH.
-	&VariantInitializer<RID>::init, // RID.
-	&VariantInitializer<Object *>::init, // OBJECT.
-	&VariantInitializer<Callable>::init, // CALLABLE.
-	&VariantInitializer<Signal>::init, // SIGNAL.
-	&VariantInitializer<Dictionary>::init, // DICTIONARY.
-	&VariantInitializer<Array>::init, // ARRAY.
-	&VariantInitializer<PackedByteArray>::init, // PACKED_BYTE_ARRAY.
-	&VariantInitializer<PackedInt32Array>::init, // PACKED_INT32_ARRAY.
-	&VariantInitializer<PackedInt64Array>::init, // PACKED_INT64_ARRAY.
-	&VariantInitializer<PackedFloat32Array>::init, // PACKED_FLOAT32_ARRAY.
-	&VariantInitializer<PackedFloat64Array>::init, // PACKED_FLOAT64_ARRAY.
-	&VariantInitializer<PackedStringArray>::init, // PACKED_STRING_ARRAY.
-	&VariantInitializer<PackedVector2Array>::init, // PACKED_VECTOR2_ARRAY.
-	&VariantInitializer<PackedVector3Array>::init, // PACKED_VECTOR3_ARRAY.
-	&VariantInitializer<PackedColorArray>::init, // PACKED_COLOR_ARRAY.
-	&VariantInitializer<PackedVector4Array>::init, // PACKED_VECTOR4_ARRAY.
+	&VariantInternalAccessor<bool>::construct_uninitialized, // BOOL.
+	&VariantInternalAccessor<int64_t>::construct_uninitialized, // INT.
+	&VariantInternalAccessor<double>::construct_uninitialized, // FLOAT.
+	&VariantInternalAccessor<String>::construct_uninitialized, // STRING.
+	&VariantInternalAccessor<Vector2>::construct_uninitialized, // VECTOR2.
+	&VariantInternalAccessor<Vector2i>::construct_uninitialized, // VECTOR2I.
+	&VariantInternalAccessor<Rect2>::construct_uninitialized, // RECT2.
+	&VariantInternalAccessor<Rect2i>::construct_uninitialized, // RECT2I.
+	&VariantInternalAccessor<Vector3>::construct_uninitialized, // VECTOR3.
+	&VariantInternalAccessor<Vector3i>::construct_uninitialized, // VECTOR3I.
+	&VariantInternalAccessor<Transform2D>::construct_uninitialized, // TRANSFORM2D.
+	&VariantInternalAccessor<Vector4>::construct_uninitialized, // VECTOR4.
+	&VariantInternalAccessor<Vector4i>::construct_uninitialized, // VECTOR4I.
+	&VariantInternalAccessor<Plane>::construct_uninitialized, // PLANE.
+	&VariantInternalAccessor<Quaternion>::construct_uninitialized, // QUATERNION.
+	&VariantInternalAccessor<AABB>::construct_uninitialized, // AABB.
+	&VariantInternalAccessor<Basis>::construct_uninitialized, // BASIS.
+	&VariantInternalAccessor<Transform3D>::construct_uninitialized, // TRANSFORM3D.
+	&VariantInternalAccessor<Projection>::construct_uninitialized, // PROJECTION.
+	&VariantInternalAccessor<Color>::construct_uninitialized, // COLOR.
+	&VariantInternalAccessor<StringName>::construct_uninitialized, // STRING_NAME.
+	&VariantInternalAccessor<NodePath>::construct_uninitialized, // NODE_PATH.
+	&VariantInternalAccessor<RID>::construct_uninitialized, // RID.
+	&VariantInternalAccessor<Object *>::construct_uninitialized, // OBJECT.
+	&VariantInternalAccessor<Callable>::construct_uninitialized, // CALLABLE.
+	&VariantInternalAccessor<Signal>::construct_uninitialized, // SIGNAL.
+	&VariantInternalAccessor<Dictionary>::construct_uninitialized, // DICTIONARY.
+	&VariantInternalAccessor<Array>::construct_uninitialized, // ARRAY.
+	&VariantInternalAccessor<PackedByteArray>::construct_uninitialized, // PACKED_BYTE_ARRAY.
+	&VariantInternalAccessor<PackedInt32Array>::construct_uninitialized, // PACKED_INT32_ARRAY.
+	&VariantInternalAccessor<PackedInt64Array>::construct_uninitialized, // PACKED_INT64_ARRAY.
+	&VariantInternalAccessor<PackedFloat32Array>::construct_uninitialized, // PACKED_FLOAT32_ARRAY.
+	&VariantInternalAccessor<PackedFloat64Array>::construct_uninitialized, // PACKED_FLOAT64_ARRAY.
+	&VariantInternalAccessor<PackedStringArray>::construct_uninitialized, // PACKED_STRING_ARRAY.
+	&VariantInternalAccessor<PackedVector2Array>::construct_uninitialized, // PACKED_VECTOR2_ARRAY.
+	&VariantInternalAccessor<PackedVector3Array>::construct_uninitialized, // PACKED_VECTOR3_ARRAY.
+	&VariantInternalAccessor<PackedColorArray>::construct_uninitialized, // PACKED_COLOR_ARRAY.
+	&VariantInternalAccessor<PackedVector4Array>::construct_uninitialized, // PACKED_VECTOR4_ARRAY.
 };
 
 #if defined(__GNUC__) || defined(__clang__)

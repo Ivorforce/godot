@@ -542,19 +542,54 @@ struct VariantInternalAccessor<T, std::enable_if_t<!std::is_same_v<T, GetSimpleT
 
 template <typename T>
 struct _VariantInternalAccessorLocal {
+	static_assert(sizeof(T) <= sizeof(Variant::_data));
+
 	using declared_when_native_type = void;
 	static constexpr bool is_local = true;
+
 	static _FORCE_INLINE_ T &get(Variant *v) { return *reinterpret_cast<T *>(v->_data._mem); }
 	static _FORCE_INLINE_ const T &get(const Variant *v) { return *reinterpret_cast<const T *>(v->_data._mem); }
 	static _FORCE_INLINE_ void set(Variant *v, T p_value) { *reinterpret_cast<T *>(v->_data._mem) = std::move(p_value); }
+
+	// Emplaces the type in the Variant without setting an explicit value.
+	// Note: Assumes p_memory is cleared or NIL.
+	static void construct_uninitialized(Variant *p_memory) {
+		VariantInternal::set_type(*p_memory, GetTypeInfo<T>::VARIANT_TYPE);
+		memnew_placement(p_memory->_data._mem, T);
+	}
+
+	// Emplaces the type in the Variant with the given arguments.
+	// Note: Assumes p_memory is cleared or NIL.
+	template <typename... Args>
+	static void construct(Variant *p_memory, Args... args) {
+		VariantInternal::set_type(*p_memory, GetTypeInfo<T>::VARIANT_TYPE);
+		memnew_placement(p_memory->_data._mem, T(std::forward<Args>(args)...));
+	}
 };
 
-template <typename T>
-struct _VariantInternalAccessorElsewhere {
+template <typename T, typename Bucket, PagedAllocator<Bucket, true> *pool>
+struct _VariantInternalAccessorPool {
+	static_assert(sizeof(T) <= sizeof(Bucket));
+
 	using declared_when_native_type = void;
 	static _FORCE_INLINE_ T &get(Variant *v) { return *reinterpret_cast<T *>(v->_data._ptr); }
 	static _FORCE_INLINE_ const T &get(const Variant *v) { return *reinterpret_cast<const T *>(v->_data._ptr); }
 	static _FORCE_INLINE_ void set(Variant *v, T p_value) { *reinterpret_cast<T *>(v->_data._ptr) = std::move(p_value); }
+
+	// Emplaces the type in the Variant without setting an explicit value.
+	// Note: Assumes p_memory is cleared or NIL.
+	static void construct_uninitialized(Variant *p_memory) {
+		VariantInternal::set_type(*p_memory, GetTypeInfo<T>::VARIANT_TYPE);
+		p_memory->_data._ptr = pool->alloc();
+	}
+
+	// Emplaces the type in the Variant with the given arguments.
+	// Note: Assumes p_memory is cleared or NIL.
+	template <typename... Args>
+	static void construct(Variant *p_memory, Args... args) {
+		VariantInternal::set_type(*p_memory, GetTypeInfo<T>::VARIANT_TYPE);
+		p_memory->_data._ptr = pool->alloc(args...);
+	}
 };
 
 template <typename T>
@@ -563,6 +598,21 @@ struct _VariantInternalAccessorPackedArrayRef {
 	static _FORCE_INLINE_ Vector<T> &get(Variant *v) { return static_cast<Variant::PackedArrayRef<T> *>(v->_data.packed_array)->array; }
 	static _FORCE_INLINE_ const Vector<T> &get(const Variant *v) { return static_cast<const Variant::PackedArrayRef<T> *>(v->_data.packed_array)->array; }
 	static _FORCE_INLINE_ void set(Variant *v, Vector<T> p_value) { static_cast<Variant::PackedArrayRef<T> *>(v->_data.packed_array)->array = std::move(p_value); }
+
+	// Emplaces the type in the Variant without setting an explicit value.
+	// Note: Assumes p_memory is cleared or NIL.
+	static void construct_uninitialized(Variant *p_memory) {
+		VariantInternal::set_type(*p_memory, GetTypeInfo<T>::VARIANT_TYPE);
+		p_memory->_data.packed_array = Variant::PackedArrayRef<T>::create();
+	}
+
+	// Emplaces the type in the Variant with the given arguments.
+	// Note: Assumes p_memory is cleared or NIL.
+	template <typename... Args>
+	static void construct(Variant *p_memory, Args... args) {
+		VariantInternal::set_type(*p_memory, GetTypeInfo<T>::VARIANT_TYPE);
+		p_memory->_data.packed_array = Variant::PackedArrayRef<T>::create(Vector<T>(std::forward<Args>(args)...));
+	}
 };
 
 template <typename T>
@@ -587,6 +637,18 @@ template <>
 struct VariantInternalAccessor<Object *> {
 	static _FORCE_INLINE_ Object *get(const Variant *v) { return const_cast<Object *>(*VariantInternal::get_object(v)); }
 	static _FORCE_INLINE_ void set(Variant *v, const Object *p_value) { VariantInternal::object_assign(v, p_value); }
+
+	// Emplaces a NULL Object in the Variant.
+	// Note: Assumes p_memory is cleared or NIL.
+	static void construct_uninitialized(Variant *p_memory) {
+		VariantInternal::init_object(p_memory);
+	}
+
+	// Emplaces a NULL Object in the Variant.
+	// Note: Assumes p_memory is cleared or NIL.
+	static void construct(Variant *p_memory) {
+		VariantInternal::init_object(p_memory);
+	}
 };
 
 template <>
@@ -654,13 +716,13 @@ template <>
 struct VariantInternalAccessor<Vector4i> : _VariantInternalAccessorLocal<Vector4i> {};
 
 template <>
-struct VariantInternalAccessor<Transform2D> : _VariantInternalAccessorElsewhere<Transform2D> {};
+struct VariantInternalAccessor<Transform2D> : _VariantInternalAccessorPool<Transform2D, Variant::Pools::BucketSmall, &Variant::Pools::_bucket_small> {};
 
 template <>
-struct VariantInternalAccessor<Transform3D> : _VariantInternalAccessorElsewhere<Transform3D> {};
+struct VariantInternalAccessor<Transform3D> : _VariantInternalAccessorPool<Transform3D, Variant::Pools::BucketMedium, &Variant::Pools::_bucket_medium> {};
 
 template <>
-struct VariantInternalAccessor<Projection> : _VariantInternalAccessorElsewhere<Projection> {};
+struct VariantInternalAccessor<Projection> : _VariantInternalAccessorPool<Projection, Variant::Pools::BucketLarge, &Variant::Pools::_bucket_large> {};
 
 template <>
 struct VariantInternalAccessor<Plane> : _VariantInternalAccessorLocal<Plane> {};
@@ -669,10 +731,10 @@ template <>
 struct VariantInternalAccessor<Quaternion> : _VariantInternalAccessorLocal<Quaternion> {};
 
 template <>
-struct VariantInternalAccessor<::AABB> : _VariantInternalAccessorElsewhere<::AABB> {};
+struct VariantInternalAccessor<::AABB> : _VariantInternalAccessorPool<::AABB, Variant::Pools::BucketSmall, &Variant::Pools::_bucket_small> {};
 
 template <>
-struct VariantInternalAccessor<Basis> : _VariantInternalAccessorElsewhere<Basis> {};
+struct VariantInternalAccessor<Basis> : _VariantInternalAccessorPool<Basis, Variant::Pools::BucketMedium, &Variant::Pools::_bucket_medium> {};
 
 template <>
 struct VariantInternalAccessor<Color> : _VariantInternalAccessorLocal<Color> {};
@@ -765,125 +827,27 @@ struct VariantInternalAccessor<ObjectID> : _VariantInternalAccessorConvert<Objec
 template <>
 struct VariantInternalAccessor<float> : _VariantInternalAccessorConvert<float, double> {};
 
-template <typename T, typename = void>
-struct VariantInitializer {
-	static _FORCE_INLINE_ void init(Variant *v) { VariantInternal::init_generic<T>(v); }
-};
-
-template <typename T>
-struct VariantInitializer<T, std::enable_if_t<VariantInternalAccessor<T>::is_local>> {
-	static _FORCE_INLINE_ void init(Variant *v) {
-		memnew_placement(&VariantInternalAccessor<T>::get(v), T);
-		VariantInternal::set_type(*v, GetTypeInfo<T>::VARIANT_TYPE);
-	}
-};
-
-template <>
-struct VariantInitializer<Transform2D> {
-	static _FORCE_INLINE_ void init(Variant *v) { VariantInternal::init_transform2d(v); }
-};
-
-template <>
-struct VariantInitializer<AABB> {
-	static _FORCE_INLINE_ void init(Variant *v) { VariantInternal::init_aabb(v); }
-};
-
-template <>
-struct VariantInitializer<Basis> {
-	static _FORCE_INLINE_ void init(Variant *v) { VariantInternal::init_basis(v); }
-};
-
-template <>
-struct VariantInitializer<Transform3D> {
-	static _FORCE_INLINE_ void init(Variant *v) { VariantInternal::init_transform3d(v); }
-};
-
-template <>
-struct VariantInitializer<Projection> {
-	static _FORCE_INLINE_ void init(Variant *v) { VariantInternal::init_projection(v); }
-};
-
-template <>
-struct VariantInitializer<PackedByteArray> {
-	static _FORCE_INLINE_ void init(Variant *v) { VariantInternal::init_byte_array(v); }
-};
-
-template <>
-struct VariantInitializer<PackedInt32Array> {
-	static _FORCE_INLINE_ void init(Variant *v) { VariantInternal::init_int32_array(v); }
-};
-
-template <>
-struct VariantInitializer<PackedInt64Array> {
-	static _FORCE_INLINE_ void init(Variant *v) { VariantInternal::init_int64_array(v); }
-};
-
-template <>
-struct VariantInitializer<PackedFloat32Array> {
-	static _FORCE_INLINE_ void init(Variant *v) { VariantInternal::init_float32_array(v); }
-};
-
-template <>
-struct VariantInitializer<PackedFloat64Array> {
-	static _FORCE_INLINE_ void init(Variant *v) { VariantInternal::init_float64_array(v); }
-};
-
-template <>
-struct VariantInitializer<PackedStringArray> {
-	static _FORCE_INLINE_ void init(Variant *v) { VariantInternal::init_string_array(v); }
-};
-
-template <>
-struct VariantInitializer<PackedVector2Array> {
-	static _FORCE_INLINE_ void init(Variant *v) { VariantInternal::init_vector2_array(v); }
-};
-
-template <>
-struct VariantInitializer<PackedVector3Array> {
-	static _FORCE_INLINE_ void init(Variant *v) { VariantInternal::init_vector3_array(v); }
-};
-
-template <>
-struct VariantInitializer<PackedColorArray> {
-	static _FORCE_INLINE_ void init(Variant *v) { VariantInternal::init_color_array(v); }
-};
-
-template <>
-struct VariantInitializer<PackedVector4Array> {
-	static _FORCE_INLINE_ void init(Variant *v) { VariantInternal::init_vector4_array(v); }
-};
-
-template <>
-struct VariantInitializer<Object *> {
-	static _FORCE_INLINE_ void init(Variant *v) { VariantInternal::init_object(v); }
-};
-
-/// Note: This struct assumes that the argument type is already of the correct type.
-template <typename T, typename = void>
-struct VariantDefaultInitializer;
-
-template <typename T>
-struct VariantDefaultInitializer<T, std::enable_if_t<IsVariantTypeT<T>>> {
-	static _FORCE_INLINE_ void init(Variant *v) {
-		VariantInternalAccessor<T>::get(v) = T();
-	}
-};
-
 template <typename T>
 struct VariantTypeChanger {
 	static _FORCE_INLINE_ void change(Variant *v) {
 		if (v->get_type() != GetTypeInfo<T>::VARIANT_TYPE || GetTypeInfo<T>::VARIANT_TYPE >= Variant::PACKED_BYTE_ARRAY) { //second condition removed by optimizer
 			VariantInternal::clear(v);
-			VariantInitializer<T>::init(v);
+			VariantInternalAccessor<T>::construct(v);
+		}
+		else {
+			// Already of the correct type, just need to set to default.
+			VariantInternalAccessor<T>::set(v, T());
 		}
 	}
 	static _FORCE_INLINE_ void change_and_reset(Variant *v) {
 		if (v->get_type() != GetTypeInfo<T>::VARIANT_TYPE || GetTypeInfo<T>::VARIANT_TYPE >= Variant::PACKED_BYTE_ARRAY) { //second condition removed by optimizer
 			VariantInternal::clear(v);
-			VariantInitializer<T>::init(v);
+			VariantInternalAccessor<T>::construct(v);
 		}
-
-		VariantDefaultInitializer<T>::init(v);
+		else {
+			// Already of the correct type, just need to set to default.
+			VariantInternalAccessor<T>::set(v, T());
+		}
 	}
 };
 

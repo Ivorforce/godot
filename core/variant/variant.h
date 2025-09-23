@@ -146,7 +146,6 @@ public:
 		MAX_RECURSION_DEPTH = 1024,
 	};
 
-private:
 	struct Pools {
 		union BucketSmall {
 			BucketSmall() {}
@@ -170,13 +169,14 @@ private:
 		static PagedAllocator<BucketMedium, true> _bucket_medium;
 		static PagedAllocator<BucketLarge, true> _bucket_large;
 	};
+private:
 
 	friend struct _VariantCall;
 	friend class VariantInternal;
 	template <typename>
 	friend struct _VariantInternalAccessorLocal;
-	template <typename>
-	friend struct _VariantInternalAccessorElsewhere;
+	template <typename T, typename Bucket, PagedAllocator<Bucket, true> *bucket_instance>
+	friend struct _VariantInternalAccessorPool;
 	template <typename>
 	friend struct _VariantInternalAccessorPackedArrayRef;
 	// Variant takes 24 bytes when real_t is float, and 40 bytes if double.

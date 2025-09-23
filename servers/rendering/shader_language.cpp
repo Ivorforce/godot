@@ -4564,8 +4564,7 @@ Variant ShaderLanguage::get_default_datatype_value(DataType p_type, int p_array_
 				}
 				value = Variant(array);
 			} else {
-				VariantInitializer<bool>::init(&value);
-				VariantDefaultInitializer<bool>::init(&value);
+				VariantInternalAccessor<bool>::construct(&value);
 			}
 			break;
 		case ShaderLanguage::TYPE_BVEC2:
@@ -4578,8 +4577,7 @@ Variant ShaderLanguage::get_default_datatype_value(DataType p_type, int p_array_
 				}
 				value = Variant(array);
 			} else {
-				VariantInitializer<int64_t>::init(&value);
-				VariantDefaultInitializer<int64_t>::init(&value);
+				VariantInternalAccessor<int64_t>::construct(&value);
 			}
 			break;
 		case ShaderLanguage::TYPE_BVEC3:
@@ -4592,8 +4590,7 @@ Variant ShaderLanguage::get_default_datatype_value(DataType p_type, int p_array_
 				}
 				value = Variant(array);
 			} else {
-				VariantInitializer<int64_t>::init(&value);
-				VariantDefaultInitializer<int64_t>::init(&value);
+				VariantInternalAccessor<int64_t>::construct(&value);
 			}
 			break;
 		case ShaderLanguage::TYPE_BVEC4:
@@ -4606,8 +4603,7 @@ Variant ShaderLanguage::get_default_datatype_value(DataType p_type, int p_array_
 				}
 				value = Variant(array);
 			} else {
-				VariantInitializer<int64_t>::init(&value);
-				VariantDefaultInitializer<int64_t>::init(&value);
+				VariantInternalAccessor<int64_t>::construct(&value);
 			}
 			break;
 		case ShaderLanguage::TYPE_INT:
@@ -4618,8 +4614,7 @@ Variant ShaderLanguage::get_default_datatype_value(DataType p_type, int p_array_
 				}
 				value = Variant(array);
 			} else {
-				VariantInitializer<int64_t>::init(&value);
-				VariantDefaultInitializer<int64_t>::init(&value);
+				VariantInternalAccessor<int64_t>::construct(&value);
 			}
 			break;
 		case ShaderLanguage::TYPE_IVEC2:
@@ -4632,8 +4627,7 @@ Variant ShaderLanguage::get_default_datatype_value(DataType p_type, int p_array_
 				}
 				value = Variant(array);
 			} else {
-				VariantInitializer<Vector2i>::init(&value);
-				VariantDefaultInitializer<Vector2i>::init(&value);
+				VariantInternalAccessor<Vector2i>::construct(&value);
 			}
 			break;
 		case ShaderLanguage::TYPE_IVEC3:
@@ -4646,8 +4640,7 @@ Variant ShaderLanguage::get_default_datatype_value(DataType p_type, int p_array_
 				}
 				value = Variant(array);
 			} else {
-				VariantInitializer<Vector3i>::init(&value);
-				VariantDefaultInitializer<Vector3i>::init(&value);
+				VariantInternalAccessor<Vector3i>::construct(&value);
 			}
 			break;
 		case ShaderLanguage::TYPE_IVEC4:
@@ -4660,8 +4653,7 @@ Variant ShaderLanguage::get_default_datatype_value(DataType p_type, int p_array_
 				}
 				value = Variant(array);
 			} else {
-				VariantInitializer<Vector4i>::init(&value);
-				VariantDefaultInitializer<Vector4i>::init(&value);
+				VariantInternalAccessor<Vector4i>::construct(&value);
 			}
 			break;
 		case ShaderLanguage::TYPE_UINT:
@@ -4672,8 +4664,7 @@ Variant ShaderLanguage::get_default_datatype_value(DataType p_type, int p_array_
 				}
 				value = Variant(array);
 			} else {
-				VariantInitializer<int64_t>::init(&value);
-				VariantDefaultInitializer<int64_t>::init(&value);
+				VariantInternalAccessor<int64_t>::construct(&value);
 			}
 			break;
 		case ShaderLanguage::TYPE_UVEC2:
@@ -4686,8 +4677,7 @@ Variant ShaderLanguage::get_default_datatype_value(DataType p_type, int p_array_
 				}
 				value = Variant(array);
 			} else {
-				VariantInitializer<Vector2i>::init(&value);
-				VariantDefaultInitializer<Vector2i>::init(&value);
+				VariantInternalAccessor<Vector2i>::construct(&value);
 			}
 			break;
 		case ShaderLanguage::TYPE_UVEC3:
@@ -4700,8 +4690,7 @@ Variant ShaderLanguage::get_default_datatype_value(DataType p_type, int p_array_
 				}
 				value = Variant(array);
 			} else {
-				VariantInitializer<Vector3i>::init(&value);
-				VariantDefaultInitializer<Vector3i>::init(&value);
+				VariantInternalAccessor<Vector3i>::construct(&value);
 			}
 			break;
 		case ShaderLanguage::TYPE_UVEC4:
@@ -4714,8 +4703,7 @@ Variant ShaderLanguage::get_default_datatype_value(DataType p_type, int p_array_
 				}
 				value = Variant(array);
 			} else {
-				VariantInitializer<Vector4i>::init(&value);
-				VariantDefaultInitializer<Vector4i>::init(&value);
+				VariantInternalAccessor<Vector4i>::construct(&value);
 			}
 			break;
 		case ShaderLanguage::TYPE_FLOAT:
@@ -4726,8 +4714,7 @@ Variant ShaderLanguage::get_default_datatype_value(DataType p_type, int p_array_
 				}
 				value = Variant(array);
 			} else {
-				VariantInitializer<double>::init(&value);
-				VariantDefaultInitializer<double>::init(&value);
+				VariantInternalAccessor<double>::construct(&value);
 			}
 			break;
 		case ShaderLanguage::TYPE_VEC2:
@@ -4738,8 +4725,7 @@ Variant ShaderLanguage::get_default_datatype_value(DataType p_type, int p_array_
 				}
 				value = Variant(array);
 			} else {
-				VariantInitializer<Vector2>::init(&value);
-				VariantDefaultInitializer<Vector2>::init(&value);
+				VariantInternalAccessor<Vector2>::construct(&value);
 			}
 			break;
 		case ShaderLanguage::TYPE_VEC3:
@@ -4759,11 +4745,9 @@ Variant ShaderLanguage::get_default_datatype_value(DataType p_type, int p_array_
 				}
 			} else {
 				if (p_hint == ShaderLanguage::ShaderNode::Uniform::HINT_SOURCE_COLOR) {
-					VariantInitializer<Color>::init(&value);
-					VariantDefaultInitializer<Color>::init(&value);
+					VariantInternalAccessor<Color>::construct(&value);
 				} else {
-					VariantInitializer<Vector3>::init(&value);
-					VariantDefaultInitializer<Vector3>::init(&value);
+					VariantInternalAccessor<Vector3>::construct(&value);
 				}
 			}
 			break;
@@ -4784,11 +4768,9 @@ Variant ShaderLanguage::get_default_datatype_value(DataType p_type, int p_array_
 				}
 			} else {
 				if (p_hint == ShaderLanguage::ShaderNode::Uniform::HINT_SOURCE_COLOR) {
-					VariantInitializer<Color>::init(&value);
-					VariantDefaultInitializer<Color>::init(&value);
+					VariantInternalAccessor<Color>::construct(&value);
 				} else {
-					VariantInitializer<Vector4>::init(&value);
-					VariantDefaultInitializer<Vector4>::init(&value);
+					VariantInternalAccessor<Vector4>::construct(&value);
 				}
 			}
 			break;
@@ -4802,8 +4784,7 @@ Variant ShaderLanguage::get_default_datatype_value(DataType p_type, int p_array_
 				}
 				value = Variant(array);
 			} else {
-				VariantInitializer<Transform2D>::init(&value);
-				VariantDefaultInitializer<Transform2D>::init(&value);
+				VariantInternalAccessor<Transform2D>::construct(&value);
 			}
 			break;
 		case ShaderLanguage::TYPE_MAT3: {
@@ -4816,8 +4797,7 @@ Variant ShaderLanguage::get_default_datatype_value(DataType p_type, int p_array_
 				}
 				value = Variant(array);
 			} else {
-				VariantInitializer<Basis>::init(&value);
-				VariantDefaultInitializer<Basis>::init(&value);
+				VariantInternalAccessor<Basis>::construct(&value);
 			}
 			break;
 		}
@@ -4831,8 +4811,7 @@ Variant ShaderLanguage::get_default_datatype_value(DataType p_type, int p_array_
 				}
 				value = Variant(array);
 			} else {
-				VariantInitializer<Projection>::init(&value);
-				VariantDefaultInitializer<Projection>::init(&value);
+				VariantInternalAccessor<Projection>::construct(&value);
 			}
 			break;
 		}
