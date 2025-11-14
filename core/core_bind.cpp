@@ -43,6 +43,7 @@
 #include "core/os/main_loop.h"
 #include "core/os/thread_safe.h"
 #include "core/variant/typed_array.h"
+#include "core/profiling/profiling.h"
 
 namespace CoreBind {
 
@@ -1441,6 +1442,7 @@ void Mutex::_bind_methods() {
 ////// Thread //////
 
 void Thread::_start_func(void *ud) {
+	GodotProfileSetThreadName("core_bind::Thread::_start_func()");
 	Ref<Thread> *tud = (Ref<Thread> *)ud;
 	Ref<Thread> t = *tud;
 	memdelete(tud);

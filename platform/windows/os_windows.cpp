@@ -2331,8 +2331,10 @@ void OS_Windows::run() {
 
 	while (true) {
 		GodotProfileFrameMark;
-		GodotProfileZone("OS_Windows::run");
-		DisplayServer::get_singleton()->process_events(); // get rid of pending events
+		{
+			GodotProfileZone("DisplayServer::process_events()");
+			DisplayServer::get_singleton()->process_events(); // get rid of pending events
+		}
 		if (Main::iteration()) {
 			break;
 		}

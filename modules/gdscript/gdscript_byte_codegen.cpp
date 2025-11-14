@@ -173,6 +173,29 @@ void GDScriptByteCodeGenerator::write_start(GDScript *p_script, const StringName
 	function->return_type = p_return_type;
 	function->rpc_config = p_rpc_config;
 	function->_argument_count = 0;
+
+#ifdef GODOT_USE_TRACY
+	if ( function->_script ) {
+		auto fqn = function->_script->get_fully_qualified_name();
+		if ( fqn.begins_with("res://") ) {
+			function->profiler_name = (fqn + "." + function->name).get_file().utf8();
+		} else {
+			function->profiler_name =(fqn + "." + function->name).utf8();
+		}
+	} else {
+		function->profiler_name = String(function->name).utf8();
+	}
+
+	function->profiler_function = String(function->name).utf8();
+	function->profiler_file = String(function->source).utf8();
+
+	function->profiler_sld.name = function->profiler_name.ptr();
+	function->profiler_sld.function = function->profiler_function.ptr();
+	function->profiler_sld.file = function->profiler_file.ptr();
+	function->profiler_sld.color = tracy::Color::DarkTurquoise;
+
+	// 	// _script->source - actual source code
+#endif
 }
 
 GDScriptFunction *GDScriptByteCodeGenerator::write_end() {
@@ -415,11 +438,18 @@ GDScriptFunction *GDScriptByteCodeGenerator::write_end() {
 #ifdef DEBUG_ENABLED
 void GDScriptByteCodeGenerator::set_signature(const String &p_signature) {
 	function->profile.signature = p_signature;
+#ifdef GODOT_USE_TRACY
+	function->profiler_function = String(function->profile.signature).utf8();
+	function->profiler_sld.function = function->profiler_function.ptr();
+#endif
 }
 #endif
 
 void GDScriptByteCodeGenerator::set_initial_line(int p_line) {
 	function->_initial_line = p_line;
+#ifdef GODOT_USE_TRACY
+	function->profiler_sld.line = p_line;
+#endif
 }
 
 #define HAS_BUILTIN_TYPE(m_var) \

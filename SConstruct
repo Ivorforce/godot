@@ -271,6 +271,14 @@ opts.Add(BoolVariable("scu_build", "Use single compilation unit build", False))
 opts.Add("scu_limit", "Max includes per SCU file when using scu_build (determines RAM use)", "0")
 opts.Add(BoolVariable("engine_update_check", "Enable engine update checks in the Project Manager", True))
 opts.Add(BoolVariable("steamapi", "Enable minimal SteamAPI integration for usage time tracking (editor only)", False))
+opts.Add(("profiler_path", "Path to the Profiler framework. Only tracy and perfetto are supported at the moment.", ""))
+opts.Add(
+    BoolVariable(
+        "profiler_sample_callstack",
+        "Profile random samples application-wide using a callstack based sampler.",
+        False,
+    )
+)
 opts.Add("cache_path", "Path to a directory where SCons cache files will be stored. No value disables the cache.", "")
 opts.Add("cache_limit", "Max size (in GiB) for the SCons cache. 0 means no limit.", "0")
 opts.Add(
@@ -1184,15 +1192,13 @@ Export("env")
 SConscript("core/SCsub")
 SConscript("servers/SCsub")
 SConscript("scene/SCsub")
-if env.editor_build:
-    SConscript("editor/SCsub")
+if env.editor_build: SConscript("editor/SCsub")
 SConscript("drivers/SCsub")
 
 SConscript("platform/SCsub")
-SConscript("modules/SCsub")
-if env["tests"]:
-    SConscript("tests/SCsub")
 SConscript("main/SCsub")
+SConscript("modules/SCsub")
+if env["tests"]: SConscript("tests/SCsub")
 
 SConscript("platform/" + env["platform"] + "/SCsub")  # Build selected platform.
 

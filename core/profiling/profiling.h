@@ -37,10 +37,16 @@
 // Use the tracy profiler.
 
 #define TRACY_ENABLE
+#include "core/string/string_name.h"
+
 #include <tracy/Tracy.hpp>
 
 // Define tracing macros.
 #define GodotProfileFrameMark FrameMark
+#define GodotProfileFrameMarkName(m_frame_name) const auto __godot_tracy_frame_##m_frame_name = #m_frame_name
+#define GodotProfileFrameMarkStart(m_frame_name) FrameMarkStart(__godot_tracy_frame_##m_frame_name)
+#define GodotProfileFrameMarkEnd(m_frame_name) FrameMarkEnd(__godot_tracy_frame_##m_frame_name)
+
 #define GodotProfileZone(m_zone_name) ZoneScopedN(m_zone_name)
 #define GodotProfileZoneGroupedFirst(m_group_name, m_zone_name) ZoneNamedN(__godot_tracy_zone_##m_group_name, m_zone_name, true)
 #define GodotProfileZoneGroupedEndEarly(m_group_name, m_zone_name) __godot_tracy_zone_##m_group_name.~ScopedZone();
@@ -55,6 +61,21 @@
 	static constexpr tracy::SourceLocationData TracyConcat(__tracy_source_location, TracyLine){ m_zone_name, TracyFunction, TracyFile, (uint32_t)TracyLine, 0 }; \
 	new (&__godot_tracy_zone_##m_group_name) tracy::ScopedZone(&TracyConcat(__tracy_source_location, TracyLine), TRACY_CALLSTACK, true)
 #endif
+
+// Memory allocation
+#define GodotProfileAlloc(ptr, size) TracyAlloc( ptr, size )
+#define GodotProfileFree(ptr) TracyFree( ptr )
+
+// Specialised for gdscript
+typedef tracy::SourceLocationData SourceLocation; // slc
+#define GodotProfileZoneScoped ZoneScoped
+#define GodotProfileZoneScopedN( m_zone_name ) ZoneScopedN( m_zone_name )
+#define GodotProfileZoneNamedN( m_var_name, m_zone_name ) ZoneNamedN( __godot_tracy_zone_##m_var_name, m_zone_name, true )
+#define GodotProfileZoneRename( m_group_name, m_zone_name ) __godot_tracy_zone_##m_group_name.Name(m_zone_name.ptr(), m_zone_name.size())
+
+#define GodotProfileScopedZone( m_group_name, slc_ref ) auto __godot_tracy_zone_##m_group_name = tracy::ScopedZone( slc_ref, true )
+
+#define GodotProfileSetThreadName( thread_name ) tracy::SetThreadName( thread_name )
 
 void godot_init_profiler();
 
@@ -88,6 +109,12 @@ struct PerfettoGroupedEventEnder {
 	__godot_perfetto_zone_##m_group_name._end_now();       \
 	TRACE_EVENT_BEGIN("godot", m_zone_name);
 
+#define GodotProfileAlloc(ptr, size)
+#define GodotProfileFree(ptr)
+
+#define GodotProfileZoneScoped GodotProfileZone(m_zone_name) TRACE_EVENT("godot", m_zone_name);
+#define GodotProfileZoneNamedN( m_group_name, m_zone_name )
+
 void godot_init_profiler();
 
 #else
@@ -100,5 +127,10 @@ void godot_init_profiler();
 #define GodotProfileZoneGroupedFirst(m_group_name, m_zone_name)
 #define GodotProfileZoneGroupedEndEarly(m_group_name, m_zone_name)
 #define GodotProfileZoneGrouped(m_group_name, m_zone_name)
+
+#define GodotProfileAlloc(ptr, size)
+#define GodotProfileFree(ptr)
+
+#define GodotProfileZoneNamedN( m_group_name, m_zone_name )
 
 #endif

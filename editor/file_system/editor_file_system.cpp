@@ -45,6 +45,7 @@
 #include "editor/script/script_editor_plugin.h"
 #include "editor/settings/editor_settings.h"
 #include "editor/settings/project_settings_editor.h"
+#include "core/profiling/profiling.h"
 #include "scene/resources/packed_scene.h"
 
 EditorFileSystem *EditorFileSystem::singleton = nullptr;
@@ -546,7 +547,10 @@ void EditorFileSystem::_save_filesystem_cache() {
 }
 
 void EditorFileSystem::_thread_func(void *_userdata) {
+	GodotProfileSetThreadName("EditorFilesystem");
+
 	EditorFileSystem *sd = (EditorFileSystem *)_userdata;
+	GodotProfileZoneScopedN("EditorFileSystem::_scan_filesystem");
 	sd->_scan_filesystem();
 }
 
