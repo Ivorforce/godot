@@ -40,6 +40,7 @@
 class ScriptLanguage;
 template <typename T>
 class TypedArray;
+class ScriptTrait;
 
 typedef void (*ScriptEditRequestFunction)(const String &p_path);
 
@@ -68,6 +69,8 @@ class ScriptServer {
 	static HashMap<StringName, GlobalScriptClass> global_classes;
 	static HashMap<StringName, Vector<StringName>> inheriters_cache;
 	static bool inheriters_cache_dirty;
+
+	static HashMap<StringName, Ref<ScriptTrait>> global_traits;
 
 public:
 	static void set_scripting_enabled(bool p_enabled);
@@ -100,6 +103,9 @@ public:
 	static void get_indirect_inheriters_list(const StringName &p_base_type, List<StringName> *r_classes);
 	static void save_global_classes();
 
+	static void add_global_trait(const StringName &p_type_name, Ref<ScriptTrait> p_trait);
+	static bool is_global_trait(const StringName &p_type_name);
+
 	static Vector<Ref<ScriptBacktrace>> capture_script_backtraces(bool p_include_variables = false);
 
 	static void init_languages();
@@ -110,11 +116,27 @@ public:
 
 class PlaceHolderScriptInstance;
 
+class ScriptTrait : public Resource {
+	GDCLASS(ScriptTrait, Resource);
+	OBJ_SAVE_TYPE(ScriptTrait);
+
+	StringName trait_super_type;
+	Ref<Script> trait_super_script;
+	StringName trait_name;
+	HashSet<Ref<ScriptTrait>> super_traits;
+
+public:
+	const StringName &get_trait_name() const { return trait_name; }
+	const HashSet<Ref<ScriptTrait>> &get_super_traits() const { return super_traits; }
+};
+
 class Script : public Resource {
 	GDCLASS(Script, Resource);
 	OBJ_SAVE_TYPE(Script);
 
 protected:
+	HashSet<Ref<ScriptTrait>> implemented_traits;
+
 	// Scripts are reloaded via the Script Editor when edited in Godot,
 	// the LSP server when edited in a connected external editor, or
 	// through EditorFileSystem::_update_script_documentation when updated directly on disk.
@@ -139,6 +161,8 @@ protected:
 
 public:
 	static constexpr AncestralClass static_ancestral_class = AncestralClass::SCRIPT;
+
+	const HashSet<Ref<ScriptTrait>> &get_implemented_traits() { return implemented_traits; }
 
 	virtual void reload_from_file() override;
 

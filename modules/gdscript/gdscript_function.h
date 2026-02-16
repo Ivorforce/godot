@@ -38,6 +38,7 @@
 #include "core/string/string_name.h"
 #include "core/templates/pair.h"
 #include "core/templates/self_list.h"
+#include "core/variant/container_type_validate.h"
 #include "core/variant/variant.h"
 
 class GDScriptInstance;
@@ -57,10 +58,7 @@ public:
 
 	Kind kind = VARIANT;
 
-	Variant::Type builtin_type = Variant::NIL;
-	StringName native_type;
-	Script *script_type = nullptr;
-	Ref<Script> script_type_ref;
+	ContainerTypeValidate type_validate;
 
 	_FORCE_INLINE_ bool has_type() const { return kind != VARIANT; }
 
@@ -234,9 +232,7 @@ public:
 
 	bool operator==(const GDScriptDataType &p_other) const {
 		return kind == p_other.kind &&
-				builtin_type == p_other.builtin_type &&
-				native_type == p_other.native_type &&
-				(script_type == p_other.script_type || script_type_ref == p_other.script_type_ref) &&
+				type_validate == p_other.type_validate &&
 				container_element_types == p_other.container_element_types;
 	}
 
@@ -246,10 +242,7 @@ public:
 
 	void operator=(const GDScriptDataType &p_other) {
 		kind = p_other.kind;
-		builtin_type = p_other.builtin_type;
-		native_type = p_other.native_type;
-		script_type = p_other.script_type;
-		script_type_ref = p_other.script_type_ref;
+		type_validate = p_other.type_validate;
 		container_element_types = p_other.container_element_types;
 	}
 

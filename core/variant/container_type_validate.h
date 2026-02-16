@@ -43,6 +43,7 @@ struct ContainerTypeValidate {
 	Variant::Type type = Variant::NIL;
 	StringName class_name;
 	Ref<Script> script;
+	Ref<ScriptTrait> script_trait;
 	const char *where = "container";
 
 private:
@@ -139,6 +140,14 @@ private:
 			}
 		}
 
+		if (script_trait.is_valid() && !other_script->get_implemented_traits().has(script_trait)) {
+			if (p_output_errors) {
+				ERR_FAIL_V_MSG(false, vformat("Attempted to %s an object into a %s, that does not implement trait '%s'.", String(p_operation), String(where), script_trait->get_trait_name()));
+			} else {
+				return false;
+			}
+		}
+
 		return true;
 	}
 
@@ -177,15 +186,17 @@ public:
 			return false;
 		} else if (script != p_type.script && !p_type.script->inherits_script(script)) {
 			return false;
+		} else if (script_trait != p_type.script_trait && !p_type.script_trait->get_super_traits().has(script_trait)) {
+			return false;
 		}
 
 		return true;
 	}
 
 	_FORCE_INLINE_ bool operator==(const ContainerTypeValidate &p_type) const {
-		return type == p_type.type && class_name == p_type.class_name && script == p_type.script;
+		return type == p_type.type && class_name == p_type.class_name && script == p_type.script && script_trait == p_type.script_trait;
 	}
 	_FORCE_INLINE_ bool operator!=(const ContainerTypeValidate &p_type) const {
-		return type != p_type.type || class_name != p_type.class_name || script != p_type.script;
+		return type != p_type.type || class_name != p_type.class_name || script != p_type.script || script_trait != p_type.script_trait;
 	}
 };

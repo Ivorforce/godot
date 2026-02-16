@@ -567,6 +567,17 @@ void ScriptServer::save_global_classes() {
 	ProjectSettings::get_singleton()->store_global_class_list(gcarr);
 }
 
+void ScriptServer::add_global_trait(const StringName& p_type_name, Ref<ScriptTrait> p_trait) {
+	ERR_FAIL_COND(global_traits.has(p_type_name));
+	ERR_FAIL_COND(global_classes.has(p_type_name));
+
+	global_traits.insert(p_type_name, p_trait);
+}
+
+bool ScriptServer::is_global_trait(const StringName& p_type_name) {
+	return global_traits.has(p_type_name);
+}
+
 Vector<Ref<ScriptBacktrace>> ScriptServer::capture_script_backtraces(bool p_include_variables) {
 	if (is_program_exiting) {
 		return Vector<Ref<ScriptBacktrace>>();
